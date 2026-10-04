@@ -1,0 +1,47 @@
+{
+ "labelled": 17474,
+ "agree_rows": 10603,
+ "agree_functional": 3190,
+ "agree_nonfunctional": 7413,
+ "agree_by_dataset": {
+  "AMREF SNV Concern and WA_Tanzania_2005-2008": 10064,
+  "Ongawa_Tanzania_2008": 352,
+  "WPDx Reingestion_Global": 187
+ },
+ "nonfunc_share_agree": 0.699,
+ "nonfunc_share_by_source_all_labelled": {
+  "AMREF": 0.957,
+  "Concern": 0.822,
+  "ISF": 0.694,
+  "Mwanza": 0.0,
+  "Ongawa": 0.012,
+  "Plan": 0.799,
+  "SNV": 0.894,
+  "Southern Highlands Participatory Organization (SHIPO)": 1.0,
+  "WaterAid": 0.807,
+  "WaterAid UK": 1.0,
+  "World Serve Intl": 1.0
+ },
+ "n_by_source_org": {
+  "AMREF": 373,
+  "Concern": 1330,
+  "ISF": 36,
+  "Mwanza": 19,
+  "Ongawa": 509,
+  "Plan": 329,
+  "SNV": 3928,
+  "Southern Highlands Participatory Organization (SHIPO)": 20,
+  "WaterAid": 10860,
+  "WaterAid UK": 55,
+  "World Serve Intl": 15
+ },
+ "rows_2010_plus": 129,
+ "rows_2013_plus": 129,
+ "seasonal_dry_class": 5137,
+ "needs_repair_class": 375,
+ "needs_repair_by_dataset": {
+  "AMREF SNV Concern and WA_Tanzania_2005-2008": 64,
+  "Ongawa_Tanzania_2008": 310,
+  "WPDx Reingestion_Global": 1
+ }
+}

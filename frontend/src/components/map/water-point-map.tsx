@@ -269,6 +269,10 @@ type WaterPointMapProps = {
   onSelectRegion?: (region: string) => void
   onSelectDistrict?: (region: string, district: string) => void
   onSelectWard?: (region: string, district: string, ward: string) => void
+  /** True while `points` is a partial, still-growing page of the complete
+   * filtered estate - an honest, non-blocking note, never a spinner over
+   * the map itself (which is already interactive with what has arrived). */
+  isLoadingMore?: boolean
   className?: string
 }
 
@@ -295,6 +299,7 @@ export function WaterPointMap({
   onSelectRegion,
   onSelectDistrict,
   onSelectWard,
+  isLoadingMore = false,
   className,
 }: WaterPointMapProps) {
   const { t } = useI18n()
@@ -448,6 +453,7 @@ export function WaterPointMap({
           >
             <span className="mg-figure font-semibold">{formatNumber(total)}</span>{' '}
             {t('map.live')}
+            {isLoadingMore ? <span className="text-muted-foreground"> · {t('map.loadingMore')}</span> : null}
           </p>
           <MapLayerSwitcher layer={layer} onLayerChange={onLayerChange} points={points} />
           <div className="rounded-sm border border-map-overlay-border bg-map-overlay px-2.5 py-2 shadow-mg-1">

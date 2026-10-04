@@ -1,0 +1,15 @@
+{
+ "source": "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/africa/tifs",
+ "bbox": [
+  29.0,
+  -12.0,
+  41.0,
+  -0.5
+ ],
+ "n_months": 548,
+ "first": "1981-01",
+ "last": "2026-08",
+ "downloaded": "2026-09-20",
+ "units": "mm/month",
+ "note": "clip of original CHIRPS v3.0 monthly Africa tifs; values unchanged"
+}

@@ -1,0 +1,54 @@
+{
+  "methodology_version": "impact_v1",
+  "created_utc": "2026-09-28T18:24:51.492666+00:00",
+  "source_dataset": "data\\processed\\majiguard_master_v0.parquet",
+  "source_dataset_total_rows": 17518,
+  "reference_record_count": 17518,
+  "excluded_rows": 0,
+  "score_definition": "A relative, unitless proxy index representing the potential magnitude of consequence to the surrounding community if a water point is or becomes Non-Functional, based on population exposure and potential alternative-access context. NOT actual people affected, NOT confirmed beneficiaries, NOT a probability of failure or impact, NOT a causal or validated outcome measure.",
+  "components": {
+    "population_exposure": {
+      "input_feature": "worldpop2022_pop_within_1000m",
+      "transformation": "log1p",
+      "normalization": "empirical percentile against the reference distribution below",
+      "direction": "higher population -> higher potential impact",
+      "weight": 0.5
+    },
+    "alternative_scarcity": {
+      "input_feature": "n_water_points_within_1000m",
+      "interpretation": "count of OTHER MAPPED water points within 1 km - NOT confirmed functioning, usable, or accessible alternatives",
+      "transformation": "log1p",
+      "normalization": "empirical percentile against the reference distribution below",
+      "direction_correction": "alternative_scarcity = 1 - alternative_access_percentile (more mapped points -> lower potential impact)",
+      "weight": 0.5
+    }
+  },
+  "combination": "impact_score = 0.5 * population_percentile + 0.5 * alternative_scarcity",
+  "combination_rationale": "Equal weighting: no expert-elicited or otherwise defensible evidence currently exists to justify weighting either component more than the other. This is the transparent, neutral default in the absence of such evidence, not an assumption that the two components are truly equally important.",
+  "percentile_convention": "For a transformed value v against sorted reference array R of length N: percentile = (count(R < v) + count(R <= v)) / (2N) - the mean of the weak and strict empirical CDF, a standard, deterministic, tie-consistent convention (implemented with numpy.searchsorted, side='left' and side='right'). Always in [0,1] by construction: values below the reference minimum score 0, values above the reference maximum score 1. An explicit below/above-reference-range audit flag is set whenever this clipping actually occurs.",
+  "missing_data_policy": "If either required input (worldpop2022_pop_within_1000m or n_water_points_within_1000m) is missing, impact_score is null (impact_score_available=False) with an explicit reason. No imputation. No reduced-dimension partial score.",
+  "contextual_only_not_in_score": [
+    "rain_3m_z",
+    "rain_12m_z",
+    "dry_months_prior12_lt30mm",
+    "dist_nearest_health_facility_m",
+    "dist_nearest_school_m"
+  ],
+  "excluded_from_score": [
+    "prediction probability",
+    "model feature importance",
+    "wpdx_dist_primary_road_m",
+    "wpdx_dist_secondary_road_m",
+    "wpdx_dist_tertiary_road_m",
+    "wpdx_dist_city_m",
+    "wpdx_dist_town_m",
+    "wpdx_is_urban",
+    "worldpop2022_pop_within_500m",
+    "worldpop2022_pop_within_2000m",
+    "worldpop2022_density_per_km2_1km",
+    "dist_nearest_any_water_point_m",
+    "n_water_points_within_500m",
+    "n_water_points_within_5000m"
+  ],
+  "not_validated_against": "real-world impact outcomes - no such ground truth exists for this project."
+}

@@ -1,0 +1,12 @@
+{
+ "name": "tanzania-healthsites",
+ "title": "Tanzania Healthsites",
+ "license_title": "ODbL",
+ "dataset_date": "[2011-11-02T00:00:00 TO 2025-12-13T23:59:59]",
+ "last_modified": "2026-08-28T19:16:23.979360",
+ "methodology": "Social Media and institutional sharing",
+ "dataset_source": "OpenStreetMap contributors",
+ "notes": "This dataset shows the list of operating health facilities. Attributes included: Name,Nature of Facility, Activities, Lat, Long",
+ "resource_url": "https://data.humdata.org/dataset/eac6c9b4-5d0d-48cc-8914-a667c716c4c5/resource/b51c4dd0-0028-4940-b046-226b07127b9a/download/tanzania.geojson",
+ "download_date": "2026-09-20"
+}

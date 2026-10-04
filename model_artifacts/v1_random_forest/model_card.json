@@ -1,0 +1,53 @@
+{
+  "model": "Random Forest (scikit-learn RandomForestClassifier, n_estimators=200, random_state=42)",
+  "task": "Binary classification of recorded water-point functional status (a 'status classification proxy', not a validated future-failure probability - see project data-quality reports).",
+  "target": {
+    "column": "label_functional_status_id",
+    "0": "Non-Functional",
+    "1": "Functional"
+  },
+  "deployment_threshold": {
+    "value": 0.4,
+    "meaning": "A water point is classified Non-Functional when P(Non-Functional) >= 0.40 (not the sklearn default of 0.50), chosen to favor recall - i.e. to reduce missed Non-Functional points - since false negatives are operationally costly for this project."
+  },
+  "training_metrics_random_split": {
+    "accuracy": 0.803368,
+    "non_functional_precision": 0.738728,
+    "non_functional_recall": 0.840789,
+    "non_functional_f1": 0.786462,
+    "roc_auc": 0.887813,
+    "pr_auc": 0.862997,
+    "note": "At threshold 0.40, on a random 80/20 stratified held-out test set (test_size=0.20, random_state=42)."
+  },
+  "spatial_validation_metrics": {
+    "precision_mean": 0.585602,
+    "precision_std": 0.08507,
+    "recall_mean": 0.59484,
+    "recall_std": 0.099109,
+    "f1_mean": 0.580668,
+    "f1_std": 0.034011,
+    "pr_auc_mean": 0.624464,
+    "pr_auc_std": 0.073494,
+    "roc_auc_mean": 0.683508,
+    "roc_auc_std": 0.08365,
+    "note": "5-fold GroupKFold, grouped by nbs_region (23 regions, 'Unknown' region excluded). Notably lower than the random-split metrics above."
+  },
+  "known_limitations": [
+    "Trained on 2004-2009 survey statuses; not validated as a predictor of *future* failure.",
+    "Target (label_functional_status_id) comes from the raw status_id field, not the label-quality-controlled 'agreement subset' recommended in data/reports/target_definition.md.",
+    "Performance drops substantially on geographically held-out regions (see spatial_validation_metrics) - part of this may be the model leaning on nbs_region/lat-long as a proxy for region/data-source labeling bias rather than pure geography; not yet confirmed with a leave-one-source-out test.",
+    "This pipeline expects the 42 columns in input_schema.json already derived (including calculated_age); turning a brand new water-point record into these 42 columns is a separate, not-yet-built data-preparation step."
+  ],
+  "environment_used_to_build_this_pipeline": {
+    "python": "3.13.15",
+    "scikit_learn": "1.9.0",
+    "pandas": "3.0.5",
+    "numpy": "2.5.2",
+    "joblib": "1.5.3"
+  },
+  "provenance": {
+    "source_notebook": "notebooks/MajiGuard_Data_Science_ML.ipynb",
+    "underlying_random_forest": "model_artifacts/majiguard_random_forest.joblib (not retrained)",
+    "verification": "Reconstructed preprocessing was verified to reproduce the notebook's exact test-set confusion matrix before saving (see model_config.json / build script output)."
+  }
+}

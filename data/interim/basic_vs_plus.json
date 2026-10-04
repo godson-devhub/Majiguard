@@ -1,0 +1,43 @@
+{
+ "basic_rows": 28256,
+ "basic_inside_adm0": 28105,
+ "basic_outside_gt1km": 2,
+ "basic_uganda_dataset_rows": 2155,
+ "basic_coord_match_plus": 18181,
+ "plus_found_in_basic": 17518,
+ "basic_status_clean": {
+  "Non-Functional": 12292,
+  "Non-Functional, dry season": 7529,
+  "Functional": 4920,
+  "Functional, needs repair": 2695,
+  "Abandoned/Decommissioned": 694,
+  "Others": 93,
+  "Functional, not in use": 33
+ },
+ "basic_years": {
+  "1978": 1,
+  "1982": 1,
+  "2002": 28,
+  "2003": 1,
+  "2004": 431,
+  "2005": 4768,
+  "2006": 2820,
+  "2007": 7139,
+  "2008": 9833,
+  "2009": 816,
+  "2010": 2086,
+  "2011": 26,
+  "2012": 15,
+  "2013": 48,
+  "2014": 32,
+  "2015": 2,
+  "2016": 94,
+  "2019": 11,
+  "2020": 49,
+  "2021": 28,
+  "2022": 24,
+  "2023": 2,
+  "2024": 1
+ },
+ "basic_status_agree_on_matched": 0.9739838292723173
+}

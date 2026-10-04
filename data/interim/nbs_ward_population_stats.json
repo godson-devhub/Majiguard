@@ -1,0 +1,16 @@
+{
+ "pdf_ward_rows_parsed": 3831,
+ "pdf_councils": 173,
+ "pdf_sum_population": 58420444,
+ "shapefile_wards": 4344,
+ "shapefile_wards_matched_to_pdf": 3448,
+ "match_rate": 0.7937384898710865,
+ "validation_n": 3448,
+ "worldpop_over_census_median": 1.0398113465612537,
+ "worldpop_over_census_p10": 0.7267814802174435,
+ "worldpop_over_census_p90": 1.4059834268991793,
+ "pearson_ward_totals": 0.9030021755944159,
+ "spearman_ward_totals": 0.9043093306731559,
+ "sum_census_matched": 50459357.0,
+ "sum_worldpop_matched": 52157360.898498535
+}

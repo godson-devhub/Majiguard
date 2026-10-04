@@ -1,0 +1,7 @@
+{
+    "model_name": "Random Forest",
+    "target": "label_functional_status_id",
+    "non_functional_class": 0,
+    "functional_class": 1,
+    "probability_threshold": 0.4
+}

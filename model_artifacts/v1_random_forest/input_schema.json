@@ -1,0 +1,297 @@
+{
+  "columns": [
+    {
+      "name": "latitude",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "longitude",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "survey_year",
+      "dtype": "int64",
+      "role": "numeric"
+    },
+    {
+      "name": "survey_month",
+      "dtype": "int64",
+      "role": "numeric (cyclically encoded inside the pipeline)"
+    },
+    {
+      "name": "water_source",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Borehole/Tubewell",
+        "Delivered Water",
+        "Packaged Water",
+        "Piped Water",
+        "Protected Spring",
+        "Protected Well",
+        "Rainwater Harvesting",
+        "Undefined Well",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "water_technology",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Hand Pump",
+        "Hand Pump - Afridev",
+        "Hand Pump - Climax",
+        "Hand Pump - India Mark",
+        "Hand Pump - Malda",
+        "Hand Pump - Mono",
+        "Hand Pump - Nira",
+        "Hand Pump - Rope",
+        "Hand Pump - SWN 80",
+        "Hand Pump - Walimi",
+        "Motorized Pump",
+        "Public Tapstand",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "water_tech_category",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Hand Pump",
+        "Motorized Pump",
+        "Public Tapstand",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "management_type",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Community Management",
+        "Direct Government Operation",
+        "No Management",
+        "Other",
+        "Private Operator/Delegated Management",
+        "School Management",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "payment_type",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Blank/unknown",
+        "Fees collected \u2013 annually",
+        "Fees collected \u2013 metered",
+        "Fees collected \u2013 monthly",
+        "Fees collected \u2013 upon breakdown",
+        "No payment",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "usage_capacity",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "subjective_water_quality",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Acceptable quality",
+        "Bad color",
+        "Bad taste",
+        "Unacceptable quality",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "inside_tz_adm0",
+      "dtype": "bool",
+      "role": "boolean"
+    },
+    {
+      "name": "dist_to_tz_border_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "nbs_region",
+      "dtype": "str",
+      "role": "categorical",
+      "observed_categories": [
+        "Arusha",
+        "Dodoma",
+        "Geita",
+        "Iringa",
+        "Kagera",
+        "Kigoma",
+        "Kilimanjaro",
+        "Lindi",
+        "Manyara",
+        "Mara",
+        "Morogoro",
+        "Mtwara",
+        "Mwanza",
+        "Njombe",
+        "Pwani",
+        "Rukwa",
+        "Ruvuma",
+        "Shinyanga",
+        "Simiyu",
+        "Singida",
+        "Songwe",
+        "Tabora",
+        "Tanga",
+        "Unknown"
+      ]
+    },
+    {
+      "name": "wpdx_is_urban",
+      "dtype": "bool",
+      "role": "boolean"
+    },
+    {
+      "name": "dist_nearest_any_water_point_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "n_water_points_within_500m",
+      "dtype": "int64",
+      "role": "numeric"
+    },
+    {
+      "name": "n_water_points_within_1000m",
+      "dtype": "int64",
+      "role": "numeric"
+    },
+    {
+      "name": "n_water_points_within_5000m",
+      "dtype": "int64",
+      "role": "numeric"
+    },
+    {
+      "name": "wpdx_dist_primary_road_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "wpdx_dist_secondary_road_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "wpdx_dist_tertiary_road_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "wpdx_dist_city_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "wpdx_dist_town_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_3m_prior_mm",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_3m_pct_of_normal",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_3m_z",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_6m_prior_mm",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_6m_pct_of_normal",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_6m_z",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_12m_prior_mm",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_12m_pct_of_normal",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_12m_z",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "rain_mean_annual_1991_2020_mm",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "dry_months_prior12_lt30mm",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "worldpop2022_pop_within_500m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "worldpop2022_pop_within_1000m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "worldpop2022_pop_within_2000m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "worldpop2022_density_per_km2_1km",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "dist_nearest_health_facility_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "dist_nearest_school_m",
+      "dtype": "float64",
+      "role": "numeric"
+    },
+    {
+      "name": "calculated_age",
+      "dtype": "float64",
+      "role": "numeric"
+    }
+  ]
+}

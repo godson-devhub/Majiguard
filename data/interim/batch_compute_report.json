@@ -1,0 +1,12 @@
+{
+  "run_at": "2026-10-03T07:12:34.079566+00:00",
+  "requested_ids_count": 17518,
+  "summary": {
+    "total": 17518,
+    "processed": 1,
+    "skipped": 17517,
+    "failed": 0,
+    "elapsed_seconds": 8.62
+  },
+  "failures": []
+}

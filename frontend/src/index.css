@@ -1,0 +1,699 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   MajiGuard AI design tokens
+   --------------------------------------------------------------------------
+   Three layers, following the design-system skill's architecture:
+     Layer 1  primitives  — raw palette, no meaning attached
+     Layer 2  semantic    — purpose aliases (what a token is FOR)
+     Layer 3  component   — a few layout/control tokens with no colour meaning
+
+   Risk and impact scales are deliberately NOT blue. Institutional blue is the
+   brand/structure colour only; hazard (risk) and teal (impact) carry meaning.
+   Every token below has an explicit light and dark value. Nothing is inverted.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Layer 1 — primitives
+   -------------------------------------------------------------------------- */
+:root {
+    /* neutral (cool grey, structural) */
+    --mg-n-0: #ffffff;
+    --mg-n-50: #f5f7f9;
+    --mg-n-100: #edf0f3;
+    --mg-n-200: #dfe4ea;
+    --mg-n-300: #c6cfd8;
+    --mg-n-400: #9aa7b4;
+    --mg-n-500: #6b7a8a;
+    --mg-n-600: #4a5765;
+    --mg-n-700: #333f4c;
+    --mg-n-800: #1e2733;
+    --mg-n-900: #131a24;
+    --mg-n-950: #0b1220;
+
+    /* institutional blue (brand + structure only) */
+    --mg-blue-50: #eef4fb;
+    --mg-blue-100: #dce8f6;
+    --mg-blue-200: #b9d1ec;
+    --mg-blue-300: #8ab4e0;
+    --mg-blue-400: #5a93d0;
+    --mg-blue-500: #3577be;
+    --mg-blue-600: #1a5fa8;
+    --mg-blue-700: #144c87;
+    --mg-blue-800: #123e6d;
+    --mg-blue-900: #113456;
+    /* Primary institutional shell blue - a distinct brand accent, kept
+       separate from the --mg-blue-* structural scale above so it can be used
+       for brand-accent details without being pulled into contrast-critical
+       surfaces (header/sidebar text contrast is tuned against --mg-blue-700/800/900). */
+    --mg-shell-blue: #89cff0;
+
+    /* hazard ramp (risk bands) */
+    --mg-hazard-soft-1: #fdf0d5;
+    --mg-hazard-soft-2: #fce0cc;
+    --mg-hazard-soft-3: #fadede;
+    --mg-hazard-soft-4: #fbd5d5;
+    --mg-hazard-400: #fbbf24;
+    --mg-hazard-500: #f97316;
+    --mg-hazard-600: #d97706;
+    --mg-hazard-600b: #ea580c;
+    --mg-hazard-700: #c2410c;
+    --mg-hazard-800: #92400e;
+    --mg-hazard-900: #7f1d1d;
+    --mg-hazard-600c: #dc2626;
+    --mg-hazard-800c: #991b1b;
+
+    /* status: functional / non-functional / warning / info */
+    --mg-green-100: #e4f4e9;
+    --mg-green-600: #15803d;
+    --mg-green-900: #14532d;
+    --mg-green-400: #4ade80;
+    --mg-green-800: #7ee2a8;
+    --mg-red-100: #fde7e7;
+    --mg-red-600: #dc2626;
+    --mg-red-700: #b42318;
+    --mg-red-900: #8c1d18;
+    --mg-red-400: #f98080;
+    --mg-amber-100: #fdf0d5;
+    --mg-amber-600: #d97706;
+    --mg-amber-700: #b45309;
+    --mg-amber-900: #92400e;
+    --mg-amber-400: #fbbf24;
+    --mg-amber-300: #fcd34d;
+    --mg-teal-100: #d6f0f2;
+    --mg-teal-600: #0e7490;
+    --mg-teal-700: #0f5f75;
+    --mg-teal-800: #10495b;
+    --mg-teal-900: #083744;
+    --mg-teal-300: #7dd3fc;
+    --mg-teal-200: #a5f3fc;
+    --mg-teal-500: #22a5b8;
+
+    /* dark-mode tinted surfaces for soft status/risk/impact chips */
+    --mg-tint-functional: #0e2a1b;
+    --mg-tint-nonfunctional: #2c1416;
+    --mg-tint-warning: #2c1f0b;
+    --mg-tint-info: #0c2530;
+    --mg-tint-risk-low: #2c1f0b;
+    --mg-tint-risk-moderate: #2e1a0d;
+    --mg-tint-risk-elevated: #30161a;
+    --mg-tint-risk-high: #2e1215;
+    --mg-tint-impact-low: #072a33;
+    --mg-tint-impact-moderate: #073440;
+    --mg-tint-impact-high: #063c49;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 2 — semantic tokens, light theme (default)
+   -------------------------------------------------------------------------- */
+:root {
+    --background: var(--mg-n-0);
+    --foreground: var(--mg-n-900);
+    --card: var(--mg-n-0);
+    --card-foreground: var(--mg-n-900);
+    --popover: var(--mg-n-0);
+    --popover-foreground: var(--mg-n-900);
+    --primary: var(--mg-blue-700);
+    --primary-foreground: var(--mg-n-0);
+    --secondary: var(--mg-n-100);
+    --secondary-foreground: var(--mg-n-800);
+    --muted: var(--mg-n-50);
+    --muted-foreground: var(--mg-n-600);
+    --accent: var(--mg-blue-50);
+    --accent-foreground: var(--mg-blue-800);
+    --destructive: var(--mg-red-700);
+    --destructive-foreground: var(--mg-n-0);
+    --success: var(--mg-green-600);
+    --warning: var(--mg-amber-700);
+    --info: var(--mg-teal-600);
+
+    /* decorative hairlines only; interactive boundaries use --border-strong */
+    --border: var(--mg-n-200);
+    --border-strong: var(--mg-n-500);
+    --input: var(--mg-n-500);
+    --ring: var(--mg-blue-700);
+
+    /* status scale: solid, soft chip surface, text/icon on that chip */
+    --status-functional: var(--mg-green-600);
+    --status-functional-soft: var(--mg-green-100);
+    --status-functional-fg: var(--mg-green-900);
+    --status-nonfunctional: var(--mg-red-700);
+    --status-nonfunctional-soft: var(--mg-red-100);
+    --status-nonfunctional-fg: var(--mg-red-900);
+    --status-warning: var(--mg-amber-700);
+    --status-warning-soft: var(--mg-amber-100);
+    --status-warning-fg: var(--mg-amber-900);
+    --status-info: var(--mg-teal-700);
+    --status-info-soft: var(--mg-teal-100);
+    --status-info-fg: var(--mg-teal-800);
+
+    /* risk bands — single-hue hazard ramp, never blue */
+    --risk-low: var(--mg-hazard-600);
+    --risk-low-soft: var(--mg-hazard-soft-1);
+    --risk-low-fg: var(--mg-hazard-800);
+    --risk-moderate: var(--mg-hazard-600b);
+    --risk-moderate-soft: var(--mg-hazard-soft-2);
+    --risk-moderate-fg: var(--mg-hazard-900);
+    --risk-elevated: var(--mg-hazard-600c);
+    --risk-elevated-soft: var(--mg-hazard-soft-3);
+    --risk-elevated-fg: var(--mg-hazard-800c);
+    --risk-high: var(--mg-hazard-800c);
+    --risk-high-soft: var(--mg-hazard-soft-4);
+    --risk-high-fg: var(--mg-hazard-900);
+
+    /* impact scale — single-hue teal ramp, magnitude not status */
+    --impact-low: var(--mg-teal-600);
+    --impact-low-soft: var(--mg-teal-100);
+    --impact-low-fg: var(--mg-teal-800);
+    --impact-moderate: var(--mg-teal-700);
+    --impact-moderate-soft: #bfeeef;
+    --impact-moderate-fg: var(--mg-teal-900);
+    --impact-high: var(--mg-teal-800);
+    --impact-high-soft: #a5e0e6;
+    --impact-high-fg: var(--mg-teal-900);
+
+    /* categorical chart series — never used for risk or impact encoding */
+    --chart-1: var(--mg-blue-700);
+    --chart-2: var(--mg-teal-600);
+    --chart-3: var(--mg-green-600);
+    --chart-4: var(--mg-amber-700);
+    --chart-5: var(--mg-n-600);
+
+    /* sidebar (step 9.3) — institutional light-blue surface. */
+    --sidebar: var(--mg-blue-50);
+    --sidebar-foreground: var(--mg-n-800);
+    --sidebar-primary: var(--mg-blue-700);
+    --sidebar-primary-foreground: var(--mg-n-0);
+    --sidebar-accent: var(--mg-blue-100);
+    --sidebar-accent-foreground: var(--mg-blue-800);
+    --sidebar-border: var(--mg-blue-200);
+    --sidebar-ring: var(--mg-blue-700);
+
+    /* header (Phase 4A.1) — the strongest institutional blue surface in the
+       shell; deliberately deeper than the sidebar tint so the shell reads as
+       a tonal ladder (header > active-nav/primary accent > sidebar tint >
+       footer) rather than one flat blue block. Light-on-dark pairing, used
+       by `.mg-header-surface` below to re-point the shared text/border
+       tokens for the header's children (ProductIdentity, IdentitySlot,
+       ThemeToggle/LocaleSwitch labels) without editing those components. */
+    --header: var(--mg-blue-800);
+    --header-foreground: var(--mg-n-0);
+    --header-muted-foreground: var(--mg-blue-100);
+    --header-border: var(--mg-blue-900);
+    --header-border-strong: color-mix(in srgb, var(--mg-n-0) 45%, transparent);
+
+    /* footer (Phase 4A.1) — the most restrained surface: near-neutral, only
+       a blue-family border ties it back to the same shell. */
+    --footer: var(--mg-n-50);
+    --footer-foreground: var(--mg-n-600);
+    --footer-border: var(--mg-blue-200);
+
+    /* map chrome (step 9.5) */
+    --map-surface: var(--mg-n-0);
+    --map-overlay: rgb(255 255 255 / 92%);
+    --map-overlay-border: var(--mg-n-300);
+    --map-marker-stroke: var(--mg-n-900);
+    --map-attribution-foreground: var(--mg-n-600);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 2 — semantic tokens, dark theme
+   Values are chosen, not inverted: surfaces sit in a deep navy range and every
+   text/soft pair is re-picked so it stays readable.
+   -------------------------------------------------------------------------- */
+.dark {
+    --background: var(--mg-n-950);
+    --foreground: #e8eef7;
+    --card: #111c2e;
+    --card-foreground: #e8eef7;
+    --popover: #16243a;
+    --popover-foreground: #e8eef7;
+    --primary: var(--mg-blue-300);
+    --primary-foreground: #0a1626;
+    --secondary: #1b2a40;
+    --secondary-foreground: #dce6f2;
+    --muted: #16243a;
+    --muted-foreground: #a9b8cc;
+    --accent: #1b2a40;
+    --accent-foreground: #cfe0f2;
+    --destructive: #f98080;
+    --destructive-foreground: #2c1416;
+    --success: var(--mg-green-400);
+    --warning: var(--mg-amber-400);
+    --info: #38bdf8;
+
+    --border: #22344c;
+    --border-strong: #5a6e8a;
+    --input: #5a6e8a;
+    --ring: var(--mg-blue-300);
+
+    --status-functional: var(--mg-green-400);
+    --status-functional-soft: var(--mg-tint-functional);
+    --status-functional-fg: var(--mg-green-800);
+    --status-nonfunctional: var(--mg-red-400);
+    --status-nonfunctional-soft: var(--mg-tint-nonfunctional);
+    --status-nonfunctional-fg: #fca5a5;
+    --status-warning: var(--mg-amber-400);
+    --status-warning-soft: var(--mg-tint-warning);
+    --status-warning-fg: var(--mg-amber-300);
+    --status-info: #38bdf8;
+    --status-info-soft: var(--mg-tint-info);
+    --status-info-fg: var(--mg-teal-300);
+
+    --risk-low: var(--mg-hazard-400);
+    --risk-low-soft: var(--mg-tint-risk-low);
+    --risk-low-fg: var(--mg-amber-300);
+    --risk-moderate: #fb923c;
+    --risk-moderate-soft: var(--mg-tint-risk-moderate);
+    --risk-moderate-fg: #fdba74;
+    --risk-elevated: #f87171;
+    --risk-elevated-soft: var(--mg-tint-risk-elevated);
+    --risk-elevated-fg: #fda4af;
+    --risk-high: #ef4444;
+    --risk-high-soft: var(--mg-tint-risk-high);
+    --risk-high-fg: #fecaca;
+
+    --impact-low: #1d7f9c;
+    --impact-low-soft: var(--mg-tint-impact-low);
+    --impact-low-fg: #67e8f9;
+    --impact-moderate: #2fa8bf;
+    --impact-moderate-soft: var(--mg-tint-impact-moderate);
+    --impact-moderate-fg: #8bebf5;
+    --impact-high: #67e8f9;
+    --impact-high-soft: var(--mg-tint-impact-high);
+    --impact-high-fg: var(--mg-teal-200);
+
+    --chart-1: var(--mg-blue-300);
+    --chart-2: var(--mg-teal-300);
+    --chart-3: var(--mg-green-400);
+    --chart-4: var(--mg-amber-400);
+    --chart-5: #9aa7b4;
+
+    --sidebar: #0f1a2b;
+    --sidebar-foreground: #dbe5f1;
+    --sidebar-primary: var(--mg-blue-300);
+    --sidebar-primary-foreground: #0a1626;
+    --sidebar-accent: #1b2a40;
+    --sidebar-accent-foreground: #dbe5f1;
+    --sidebar-border: #22344c;
+    --sidebar-ring: var(--mg-blue-300);
+
+    /* header — a touch more saturated than the sidebar's desaturated navy,
+       so it still reads as the strongest surface even in dark mode (never a
+       naive inversion of the light-mode value). */
+    --header: var(--mg-blue-900);
+    --header-foreground: #e8eef7;
+    --header-muted-foreground: var(--mg-blue-200);
+    --header-border: #0a1626;
+    --header-border-strong: color-mix(in srgb, #e8eef7 35%, transparent);
+
+    --footer: var(--mg-n-950);
+    --footer-foreground: #a9b8cc;
+    --footer-border: #22344c;
+
+    --map-surface: #111c2e;
+    --map-overlay: rgb(17 28 46 / 92%);
+    --map-overlay-border: #2c3f5a;
+    --map-marker-stroke: #e8eef7;
+    --map-attribution-foreground: #a9b8cc;
+}
+
+/* --------------------------------------------------------------------------
+   Header surface scope (Phase 4A.1) — re-points the shared text/border
+   tokens for everything rendered inside the header, the same technique
+   `.dark` already uses for the whole app. This lets ProductIdentity,
+   IdentitySlot's placeholder frame, and the ThemeToggle/LocaleSwitch labels
+   stay legible on the header's dark blue surface without any component
+   edit. `--background`/`--input`/`--primary`/`--ring` are deliberately left
+   alone, so Switch/Select controls keep their normal light appearance
+   rather than inheriting a dark, hard-to-theme control surface.
+   -------------------------------------------------------------------------- */
+.mg-header-surface {
+    --foreground: var(--header-foreground);
+    --muted-foreground: var(--header-muted-foreground);
+    --border-strong: var(--header-border-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 3 — component / layout tokens
+   -------------------------------------------------------------------------- */
+:root {
+    --radius: 0.5rem;
+    --radius-xs: 0.125rem;
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.25rem;
+    --radius-4xl: 1.5rem;
+
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
+
+    --control-height: 2rem;
+    --control-height-sm: 1.75rem;
+    --target-size-min: 1.5rem;
+    --target-size-comfortable: 2.75rem;
+    --table-row-height: 2.5rem;
+    --header-height: 4.5rem;
+    --content-max-width: 90rem;
+    --scroll-padding-header: 5rem;
+
+    --duration-fast: 120ms;
+    --duration-standard: 160ms;
+    --duration-slow: 240ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+
+    --shadow-mg-0: none;
+    --shadow-mg-1: 0 1px 2px 0 rgb(19 26 36 / 0.06);
+    --shadow-mg-2: 0 2px 6px -1px rgb(19 26 36 / 0.1);
+    --shadow-mg-3: 0 12px 28px -12px rgb(19 26 36 / 0.22);
+}
+
+.dark {
+    --shadow-mg-1: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+    --shadow-mg-2: 0 2px 8px -1px rgb(0 0 0 / 0.6);
+    --shadow-mg-3: 0 16px 36px -16px rgb(0 0 0 / 0.75);
+}
+
+/* --------------------------------------------------------------------------
+   Leaflet map chrome (step 9.5)
+   The map surface, attribution, markers, clusters and tooltips are restyled so
+   they read as part of the MajiGuard system in both themes.
+   -------------------------------------------------------------------------- */
+.mg-leaflet .leaflet-container {
+    background: var(--map-surface);
+    font-family: var(--font-sans);
+}
+
+.mg-leaflet .leaflet-control-attribution {
+    background: var(--map-overlay);
+    color: var(--map-attribution-foreground);
+    font-size: var(--text-mg-caption);
+    line-height: var(--text-mg-caption--line-height);
+}
+
+.mg-leaflet .leaflet-control-attribution a {
+    color: var(--primary);
+}
+
+/* divIcon wrappers are transparent; the visible shapes are the two classes below. */
+.mg-divicon {
+    background: transparent;
+    border: none;
+}
+
+.mg-water-marker {
+    display: block;
+    width: 11px;
+    height: 11px;
+    border-radius: 9999px;
+    background: var(--primary);
+    border: 1.5px solid var(--map-surface);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--map-marker-stroke) 35%, transparent);
+}
+
+.mg-cluster {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--primary) 16%, var(--map-surface));
+    border: 1px solid color-mix(in srgb, var(--primary) 50%, var(--map-surface));
+    color: var(--accent-foreground);
+    font-size: var(--text-mg-caption);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Marker colour encodings. The condition classes read the status tokens; the
+   ramp classes receive a resolved colour via a CSS custom property set inline
+   by the map, because a continuous stored score is displayed as a continuous
+   ramp. The base classes stay neutral (brand blue) exactly as before.
+   -------------------------------------------------------------------------- */
+.mg-water-marker--functional { background: var(--status-functional); }
+.mg-water-marker--nonfunctional { background: var(--status-nonfunctional); }
+.mg-water-marker--warning { background: var(--status-warning); }
+.mg-water-marker--info { background: var(--status-info); }
+.mg-water-marker--neutral { background: color-mix(in srgb, var(--mg-n-500) 80%, var(--mg-n-700)); }
+
+.mg-water-marker--ramp {
+    background: var(--mg-marker-color, var(--primary));
+}
+
+.mg-water-marker--selected {
+    transform: scale(1.3);
+    box-shadow:
+        0 0 0 1px var(--map-surface),
+        0 0 0 4px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.mg-leaflet .mg-map-tooltip {
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-mg-2);
+    color: var(--foreground);
+    border-radius: var(--radius-md);
+    font-size: var(--text-mg-caption);
+    font-weight: 600;
+}
+
+.mg-leaflet .mg-map-tooltip::before {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Tailwind theme bridge — maps tokens onto utilities (bg-card, text-risk-high…)
+   -------------------------------------------------------------------------- */
+@theme inline {
+    /* The self-referencing radius and shadow entries below are intentional:
+       the utilities inline the primitive name, and these unlayered :root and
+       .dark definitions win the cascade, so dark-mode overrides keep working. */
+    --font-heading: var(--font-sans);
+    --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-success: var(--success);
+    --color-success-foreground: var(--foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--foreground);
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-status-functional: var(--status-functional);
+    --color-status-functional-soft: var(--status-functional-soft);
+    --color-status-functional-fg: var(--status-functional-fg);
+    --color-status-nonfunctional: var(--status-nonfunctional);
+    --color-status-nonfunctional-soft: var(--status-nonfunctional-soft);
+    --color-status-nonfunctional-fg: var(--status-nonfunctional-fg);
+    --color-status-warning: var(--status-warning);
+    --color-status-warning-soft: var(--status-warning-soft);
+    --color-status-warning-fg: var(--status-warning-fg);
+    --color-status-info: var(--status-info);
+    --color-status-info-soft: var(--status-info-soft);
+    --color-status-info-fg: var(--status-info-fg);
+
+    --color-risk-low: var(--risk-low);
+    --color-risk-low-soft: var(--risk-low-soft);
+    --color-risk-low-fg: var(--risk-low-fg);
+    --color-risk-moderate: var(--risk-moderate);
+    --color-risk-moderate-soft: var(--risk-moderate-soft);
+    --color-risk-moderate-fg: var(--risk-moderate-fg);
+    --color-risk-elevated: var(--risk-elevated);
+    --color-risk-elevated-soft: var(--risk-elevated-soft);
+    --color-risk-elevated-fg: var(--risk-elevated-fg);
+    --color-risk-high: var(--risk-high);
+    --color-risk-high-soft: var(--risk-high-soft);
+    --color-risk-high-fg: var(--risk-high-fg);
+
+    --color-impact-low: var(--impact-low);
+    --color-impact-low-soft: var(--impact-low-soft);
+    --color-impact-low-fg: var(--impact-low-fg);
+    --color-impact-moderate: var(--impact-moderate);
+    --color-impact-moderate-soft: var(--impact-moderate-soft);
+    --color-impact-moderate-fg: var(--impact-moderate-fg);
+    --color-impact-high: var(--impact-high);
+    --color-impact-high-soft: var(--impact-high-soft);
+    --color-impact-high-fg: var(--impact-high-fg);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    --color-header: var(--header);
+    --color-header-foreground: var(--header-foreground);
+    --color-header-border: var(--header-border);
+
+    --color-footer: var(--footer);
+    --color-footer-foreground: var(--footer-foreground);
+    --color-footer-border: var(--footer-border);
+
+    --color-map-surface: var(--map-surface);
+    --color-map-overlay: var(--map-overlay);
+    --color-map-overlay-border: var(--map-overlay-border);
+    --color-map-marker-stroke: var(--map-marker-stroke);
+
+    --radius-xs: var(--radius-xs);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-xl: var(--radius-xl);
+    --radius-2xl: var(--radius-2xl);
+    --radius-3xl: var(--radius-3xl);
+    --radius-4xl: var(--radius-4xl);
+
+    --shadow-mg-0: var(--shadow-mg-0);
+    --shadow-mg-1: var(--shadow-mg-1);
+    --shadow-mg-2: var(--shadow-mg-2);
+    --shadow-mg-3: var(--shadow-mg-3);
+
+    --ease-mg-standard: var(--ease-standard);
+    --ease-mg-entrance: var(--ease-entrance);
+
+    /* type scale — dense-data oriented, no decorative sizes */
+    --text-mg-display: 2.125rem;
+    --text-mg-display--line-height: 2.5rem;
+    --text-mg-display--letter-spacing: -0.02em;
+    --text-mg-title-lg: 1.75rem;
+    --text-mg-title-lg--line-height: 2.25rem;
+    --text-mg-title-lg--letter-spacing: -0.01em;
+    --text-mg-title-md: 1.25rem;
+    --text-mg-title-md--line-height: 1.75rem;
+    --text-mg-title-sm: 0.9375rem;
+    --text-mg-title-sm--line-height: 1.375rem;
+    --text-mg-body: 1rem;
+    --text-mg-body--line-height: 1.625rem;
+    --text-mg-body-sm: 0.875rem;
+    --text-mg-body-sm--line-height: 1.375rem;
+    --text-mg-label: 0.8125rem;
+    --text-mg-label--line-height: 1.25rem;
+    --text-mg-caption: 0.75rem;
+    --text-mg-caption--line-height: 1.125rem;
+    --text-mg-figure: 1.5rem;
+    --text-mg-figure--line-height: 2rem;
+    --text-mg-figure--letter-spacing: -0.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+
+/* tabular figures for tables, coordinates, scores and KPIs */
+@utility mg-figure {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+/* restrained, purpose-only transition */
+@utility mg-transition {
+    transition-duration: var(--duration-standard);
+    transition-timing-function: var(--ease-standard);
+}
+
+/* min 44px comfortable touch target */
+@utility mg-target-comfortable {
+    min-height: var(--target-size-comfortable);
+    min-width: var(--target-size-comfortable);
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    html {
+        @apply font-sans;
+        color-scheme: light;
+        /* WCAG 2.2 focus not obscured: keep focused items clear of the
+           sticky institutional header */
+        scroll-padding-top: var(--scroll-padding-header);
+        scroll-padding-bottom: var(--scroll-padding-header);
+    }
+
+    .dark html,
+    html.dark {
+        color-scheme: dark;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-size: var(--text-mg-body);
+        line-height: var(--text-mg-body--line-height);
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+
+    /* One guaranteed visible focus indicator for every interactive element,
+       including future hand-written components. Components add a soft ring. */
+    :focus-visible {
+        outline: var(--focus-ring-width) solid var(--ring);
+        outline-offset: var(--focus-ring-offset);
+        border-radius: var(--radius-sm);
+    }
+
+    /* Forced-colours / Windows High Contrast: keep the focus ring visible. */
+    @media (forced-colors: active) {
+        :focus-visible {
+            outline: 3px solid CanvasText;
+        }
+    }
+
+    ::selection {
+        background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
