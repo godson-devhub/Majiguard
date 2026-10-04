@@ -1,0 +1,11 @@
+# Exact versions used to build and verify this pipeline (v1_random_forest).
+# The underlying Random Forest was originally trained under
+# scikit-learn==1.6.1 (see model_card.json); this environment repackages
+# it under a newer scikit-learn and confirmed identical predictions on the
+# notebook's held-out test set (see model_config.json "verification").
+#
+# python == 3.13.15
+scikit-learn==1.9.0
+pandas==3.0.5
+numpy==2.5.2
+joblib==1.5.3

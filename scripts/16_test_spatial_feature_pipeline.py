@@ -1,0 +1,283 @@
+"""Step 3.6 - integration test: combine Steps 3.2-3.5 into one spatial
+feature dict, validate every generated feature against real training
+records, and report exact 42-column coverage.
+
+Run as its own fresh process (no notebook or other script's variables):
+
+    python scripts/16_test_spatial_feature_pipeline.py
+
+TEST 1: coverage report - every one of the 42 model-input columns is
+        classified as raw/Step2, Step 3.2/3.3/3.4/3.5, or unresolved.
+TEST 2: >=10 real, geographically distributed water points - every
+        Step-3-generated feature compared against majiguard_master_v0.
+TEST 3: self-exclusion still holds through the combined pipeline.
+TEST 4: end-to-end demonstration - raw fields + Step 2 + Step 3 ->
+        available model-input columns, with an explicit, honest look at
+        the 5-column gap that remains.
+TEST 5: this whole script running as an independent process IS the
+        fresh-process test.
+"""
+
+import math
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from majiguard_ml.data_prep import RAW_INPUT_COLUMNS  # noqa: E402
+from majiguard_ml.raw_input_prep import (  # noqa: E402
+    REQUIRED_RAW_RECORD_COLUMNS,
+    prepare_raw_record,
+)
+from majiguard_ml.spatial_feature_pipeline import (  # noqa: E402
+    UNAVAILABLE_MODEL_FEATURES,
+    build_spatial_features,
+)
+
+DATA_PARQUET = PROJECT_ROOT / "data" / "processed" / "majiguard_master_v0.parquet"
+
+# ---------------------------------------------------------------------
+# PART A/B: the full 42-column dependency map, built by inspecting
+# input_schema.json, raw_input_prep.py, and each Step 3 module's own
+# documented feature list - not guessed.
+# ---------------------------------------------------------------------
+STEP_3_2_CLIMATE = [
+    "rain_3m_prior_mm", "rain_3m_pct_of_normal", "rain_3m_z",
+    "rain_6m_prior_mm", "rain_6m_pct_of_normal", "rain_6m_z",
+    "rain_12m_prior_mm", "rain_12m_pct_of_normal", "rain_12m_z",
+    "rain_mean_annual_1991_2020_mm", "dry_months_prior12_lt30mm",
+]
+STEP_3_3_POPULATION = [
+    "worldpop2022_pop_within_500m", "worldpop2022_pop_within_1000m",
+    "worldpop2022_pop_within_2000m", "worldpop2022_density_per_km2_1km",
+]
+STEP_3_4_ACCESSIBILITY = ["dist_nearest_health_facility_m", "dist_nearest_school_m"]
+STEP_3_4_BOUNDARY = ["inside_tz_adm0", "dist_to_tz_border_m", "nbs_region"]
+STEP_3_5_NEARBY = [
+    "dist_nearest_any_water_point_m", "n_water_points_within_500m",
+    "n_water_points_within_1000m", "n_water_points_within_5000m",
+]
+STEP3_GENERATED = (
+    STEP_3_2_CLIMATE + STEP_3_3_POPULATION + STEP_3_4_ACCESSIBILITY
+    + STEP_3_4_BOUNDARY + STEP_3_5_NEARBY
+)
+RAW_OR_STEP2 = [c for c in RAW_INPUT_COLUMNS
+                if c not in STEP3_GENERATED and c not in UNAVAILABLE_MODEL_FEATURES]
+
+TOLERANCE_BY_KIND = {
+    "count": 0,           # n_water_points_within_* - exact
+    "boolean_or_category": 0,   # inside_tz_adm0, nbs_region - exact
+    "distance_tight": 0.5,      # health/school/border distances, metres
+    "distance_very_tight": 0.05,  # nearby-water-point distance, metres
+    "rain_ratio": 0.05, "rain_z": 0.001, "rain_mm": 0.05,
+    "population": 0.05,
+}
+
+
+def tolerance_for(name):
+    if name.startswith("n_water_points_within_"):
+        return TOLERANCE_BY_KIND["count"]
+    if name in ("inside_tz_adm0", "nbs_region"):
+        return TOLERANCE_BY_KIND["boolean_or_category"]
+    if name == "dist_nearest_any_water_point_m":
+        return TOLERANCE_BY_KIND["distance_very_tight"]
+    if name in ("dist_nearest_health_facility_m", "dist_nearest_school_m", "dist_to_tz_border_m"):
+        return TOLERANCE_BY_KIND["distance_tight"]
+    if name.endswith("_pct_of_normal"):
+        return TOLERANCE_BY_KIND["rain_ratio"]
+    if name.endswith("_z"):
+        return TOLERANCE_BY_KIND["rain_z"]
+    if name.endswith("_prior_mm") or name == "rain_mean_annual_1991_2020_mm":
+        return TOLERANCE_BY_KIND["rain_mm"]
+    if name == "dry_months_prior12_lt30mm":
+        return TOLERANCE_BY_KIND["rain_ratio"]
+    return TOLERANCE_BY_KIND["population"]
+
+
+def values_match(name, dataset_value, computed_value):
+    if name in ("inside_tz_adm0",):
+        return bool(dataset_value) == bool(computed_value)
+    if name in ("nbs_region",):
+        dataset_str = None if pd.isna(dataset_value) else str(dataset_value)
+        return dataset_str == computed_value
+    if name.startswith("n_water_points_within_"):
+        return int(dataset_value) == int(computed_value)
+    diff = abs(float(dataset_value) - float(computed_value))
+    return diff <= tolerance_for(name), diff
+
+
+def test_1_coverage_report():
+    print("=" * 92)
+    print("TEST 1: 42-column coverage report (verified against input_schema.json / RAW_INPUT_COLUMNS)")
+    print("=" * 92)
+    print(f"Total model input features: {len(RAW_INPUT_COLUMNS)}")
+    print(f"  Raw input / Step 2 (direct, not spatial):     {len(RAW_OR_STEP2)}")
+    print(f"  Generated by Step 3.2 (climate):               {len(STEP_3_2_CLIMATE)}")
+    print(f"  Generated by Step 3.3 (population):            {len(STEP_3_3_POPULATION)}")
+    print(f"  Generated by Step 3.4 (accessibility):         {len(STEP_3_4_ACCESSIBILITY)}")
+    print(f"  Generated by Step 3.4 (boundary/geography):    {len(STEP_3_4_BOUNDARY)}")
+    print(f"  Generated by Step 3.5 (nearby water points):   {len(STEP_3_5_NEARBY)}")
+    print(f"  Still unresolved (road/city/town):             {len(UNAVAILABLE_MODEL_FEATURES)}")
+    accounted = (len(RAW_OR_STEP2) + len(STEP3_GENERATED) + len(UNAVAILABLE_MODEL_FEATURES))
+    print(f"  Sum check: {accounted} (must equal {len(RAW_INPUT_COLUMNS)})")
+    assert accounted == len(RAW_INPUT_COLUMNS)
+    assert set(RAW_OR_STEP2 + STEP3_GENERATED + list(UNAVAILABLE_MODEL_FEATURES)) == set(RAW_INPUT_COLUMNS)
+
+    print(f"\n{'Feature':<38}Source")
+    print("-" * 70)
+    labels = (
+        [(c, "Raw input / Step 2") for c in RAW_OR_STEP2]
+        + [(c, "Step 3.2 (climate)") for c in STEP_3_2_CLIMATE]
+        + [(c, "Step 3.3 (population)") for c in STEP_3_3_POPULATION]
+        + [(c, "Step 3.4 (accessibility)") for c in STEP_3_4_ACCESSIBILITY]
+        + [(c, "Step 3.4 (boundary)") for c in STEP_3_4_BOUNDARY]
+        + [(c, "Step 3.5 (nearby points)") for c in STEP_3_5_NEARBY]
+        + [(c, "UNRESOLVED (no local source)") for c in UNAVAILABLE_MODEL_FEATURES]
+    )
+    by_name = dict(labels)
+    for name in RAW_INPUT_COLUMNS:
+        print(f"{name:<38}{by_name[name]}")
+
+
+def test_2_validate_real_points():
+    print("\n" + "=" * 92)
+    print("TEST 2: >=10 real, geographically distributed water points vs. majiguard_master_v0")
+    print("=" * 92)
+    df = pd.read_parquet(DATA_PARQUET)
+    required_notna = STEP_3_2_CLIMATE[:1] + STEP_3_3_POPULATION[:1] + STEP_3_4_ACCESSIBILITY + ["nbs_region"]
+    available = df.dropna(subset=required_notna)
+    sample = (
+        available.sample(frac=1, random_state=3)
+        .drop_duplicates(subset="nbs_region")
+        .head(12)
+    )
+    print(f"Points selected: {len(sample)} (from {sample['nbs_region'].nunique()} distinct regions)")
+
+    n_comparisons = n_exact = n_tolerance = n_mismatch = 0
+    max_diff = 0.0
+    mismatches = []
+
+    for _, row in sample.iterrows():
+        computed = build_spatial_features(row["latitude"], row["longitude"],
+                                           int(row["survey_year"]), int(row["survey_month"]))
+        assert not any(name in computed for name in UNAVAILABLE_MODEL_FEATURES)
+        for name in STEP3_GENERATED:
+            n_comparisons += 1
+            dataset_value = row[name]
+            computed_value = computed[name]
+            if name in ("inside_tz_adm0", "nbs_region") or name.startswith("n_water_points_within_"):
+                match = values_match(name, dataset_value, computed_value)
+                passed = match if isinstance(match, bool) else match[0]
+                if passed:
+                    n_exact += 1
+                else:
+                    n_mismatch += 1
+                    mismatches.append((row["wpdx_id"], name, dataset_value, computed_value, "-"))
+            else:
+                passed, diff = values_match(name, dataset_value, computed_value)
+                max_diff = max(max_diff, diff)
+                if diff == 0.0:
+                    n_exact += 1
+                elif passed:
+                    n_tolerance += 1
+                else:
+                    n_mismatch += 1
+                    mismatches.append((row["wpdx_id"], name, dataset_value, computed_value, diff))
+
+    print(f"\npoints tested:           {len(sample)}")
+    print(f"feature comparisons:     {n_comparisons}  ({len(STEP3_GENERATED)} features x {len(sample)} points)")
+    print(f"exact matches:           {n_exact}")
+    print(f"tolerance-level matches: {n_tolerance}")
+    print(f"mismatches:              {n_mismatch}")
+    print(f"maximum numeric diff:    {max_diff}")
+
+    if mismatches:
+        print("\nMISMATCH DETAILS:")
+        for wpdx_id, name, dataset_value, computed_value, diff in mismatches:
+            print(f"  {wpdx_id} {name}: dataset={dataset_value}, computed={computed_value}, diff={diff}")
+    return n_mismatch == 0, sample
+
+
+def test_3_self_exclusion_through_pipeline(sample):
+    print("\n" + "=" * 92)
+    print("TEST 3: self-exclusion still holds through the combined pipeline")
+    print("=" * 92)
+    row = sample.iloc[0]
+    result = build_spatial_features(row["latitude"], row["longitude"],
+                                     int(row["survey_year"]), int(row["survey_month"]))
+    print(f"Water point: {row['wpdx_id']} (a real reference point)")
+    print(f"  dist_nearest_any_water_point_m = {result['dist_nearest_any_water_point_m']:.4f} "
+          f"(dataset: {row['dist_nearest_any_water_point_m']:.4f})")
+    ok = result["dist_nearest_any_water_point_m"] > 0
+    print(f"  > 0, i.e. did NOT just find itself: {ok}")
+    return ok
+
+
+def test_4_end_to_end(sample):
+    print("\n" + "=" * 92)
+    print("TEST 4: end-to-end raw fields + Step 2 + Step 3 -> available model-input columns")
+    print("=" * 92)
+    row = sample.iloc[0]
+    print(f"Water point: {row['wpdx_id']}")
+
+    generated = build_spatial_features(row["latitude"], row["longitude"],
+                                        int(row["survey_year"]), int(row["survey_month"]))
+    print(f"\nStep 3 generated {len(generated)} features "
+          f"(matches expected {len(STEP3_GENERATED)}): "
+          f"{sorted(generated.keys()) == sorted(STEP3_GENERATED)}")
+    assert not (set(generated) & set(UNAVAILABLE_MODEL_FEATURES))
+    assert set(generated) == set(STEP3_GENERATED)
+
+    print("\nStep 2's prepare_raw_record() requires exactly these columns as direct input:")
+    print(f"  {len(REQUIRED_RAW_RECORD_COLUMNS)} columns, including the 5 unresolved road/city/town "
+          f"features -> {[c for c in UNAVAILABLE_MODEL_FEATURES if c in REQUIRED_RAW_RECORD_COLUMNS]}")
+    print("  This means Step 2 cannot be called with ONLY raw/basic fields + Step 3's output today -")
+    print("  the 5 road/city/town values are still needed from somewhere else. Not redesigning Step 2")
+    print("  to work around this, per instructions - reporting it as-is.")
+
+    print("\nFor this demonstration ONLY, this real point's OWN already-known road/city/town values")
+    print("(straight from majiguard_master_v0, NOT computed by any Step 3 module) are borrowed so the")
+    print("full 42-column contract can be shown end-to-end:")
+    record = {col: row[col] for col in REQUIRED_RAW_RECORD_COLUMNS if col not in generated}
+    record.update({col: row[col] for col in UNAVAILABLE_MODEL_FEATURES})
+    record.update({k: v for k, v in generated.items() if k in ("nbs_region",)})  # categorical passthrough check below
+
+    prepared = prepare_raw_record({**record, **{k: v for k, v in row.items()
+                                                 if k in REQUIRED_RAW_RECORD_COLUMNS}})
+    print(f"\nprepare_raw_record() output: {prepared.shape} "
+          f"(expected (1, {len(RAW_INPUT_COLUMNS)}))")
+    assert list(prepared.columns) == RAW_INPUT_COLUMNS
+    assert prepared.shape == (1, len(RAW_INPUT_COLUMNS))
+
+    available_model_input = prepared.iloc[0].to_dict()
+    available_model_input.update(generated)  # Step 3's freshly computed spatial features
+    print(f"Combined available model-input columns: {len(available_model_input)} "
+          f"(all {len(RAW_INPUT_COLUMNS)} present, since the 5 unresolved ones were borrowed "
+          f"for this demo only)")
+
+    no_new_columns = set(available_model_input) == set(RAW_INPUT_COLUMNS)
+    no_duplicates = len(available_model_input) == len(RAW_INPUT_COLUMNS)
+    print(f"  no unexpected columns introduced: {no_new_columns}")
+    print(f"  no column duplicated/overwritten unexpectedly: {no_duplicates}")
+    return no_new_columns and no_duplicates
+
+
+def main():
+    test_1_coverage_report()
+    ok_2, sample = test_2_validate_real_points()
+    ok_3 = test_3_self_exclusion_through_pipeline(sample)
+    ok_4 = test_4_end_to_end(sample)
+
+    print("\n" + "=" * 92)
+    if ok_2 and ok_3 and ok_4:
+        print("STEP 3.6 SPATIAL FEATURE INTEGRATION TEST: PASSED")
+    else:
+        print("STEP 3.6 SPATIAL FEATURE INTEGRATION TEST: FAILED - see details above")
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

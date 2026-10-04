@@ -1,0 +1,482 @@
+{
+ "n_rows_tz": 17518,
+ "n_cols": 73,
+ "report_date_min": "1978-10-27",
+ "report_date_max": "2024-05-10",
+ "report_year_counts": {
+  "1978": 1,
+  "2002": 22,
+  "2003": 1,
+  "2004": 339,
+  "2005": 4105,
+  "2006": 1968,
+  "2007": 4806,
+  "2008": 5817,
+  "2009": 330,
+  "2013": 9,
+  "2014": 10,
+  "2016": 20,
+  "2019": 7,
+  "2020": 48,
+  "2021": 15,
+  "2022": 19,
+  "2024": 1
+ },
+ "share_reported_2004_2009": 0.9912661262701221,
+ "lat_lon_missing": 0,
+ "lat_lon_global_invalid": 0,
+ "lat_lon_zero": 0,
+ "outside_rough_tz_box": 0,
+ "inside_adm0": 17454,
+ "outside_adm0": 64,
+ "outside_adm0_within_1km": 62,
+ "outside_adm0_gt_1km": 2,
+ "outside_adm0_gt_10km": 0,
+ "outside_adm0_max_km": 1.729213044413043,
+ "in_nbs_ward_polygon": 17477,
+ "not_in_any_nbs_ward": 41,
+ "region_name_matches_nbs": 16727,
+ "region_name_mismatch_or_unmatched": 791,
+ "clean_adm1_unique_raw": 23,
+ "clean_adm1_values_not_a_region_name": {},
+ "n_points_with_nonregion_adm1": 0,
+ "region_mismatch_top_pairs": {
+  "Pwani -> Pwani": 703,
+  "Manyara -> Dodoma": 10,
+  "Mwanza -> Simiyu": 9,
+  "Manyara -> Singida": 6,
+  "Simiyu -> Mwanza": 3,
+  "Dodoma -> Singida": 2,
+  "Kilimanjaro -> Arusha": 2,
+  "Tanga -> Morogoro": 2,
+  "Singida -> Arusha": 2,
+  "Manyara -> Arusha": 2,
+  "Geita -> Shinyanga": 1,
+  "Pwani -> Morogoro": 1
+ },
+ "district_name_matches_nbs_loose": 17171,
+ "wpdx_adm2_unique": 86,
+ "nbs_districts_hit": 70,
+ "nbs_wards_hit": 1202,
+ "zanzibar_points": 0,
+ "nbs_region_counts": {
+  "Dodoma": 2731,
+  "Kagera": 2527,
+  "Singida": 1903,
+  "Tabora": 1198,
+  "Njombe": 1016,
+  "Arusha": 836,
+  "Ruvuma": 810,
+  "Simiyu": 776,
+  "Mwanza": 716,
+  "Pwani": 703,
+  "Morogoro": 625,
+  "Songwe": 539,
+  "Kigoma": 474,
+  "Rukwa": 450,
+  "Shinyanga": 438,
+  "Mtwara": 408,
+  "Kilimanjaro": 337,
+  "Mara": 305,
+  "Geita": 292,
+  "Tanga": 167,
+  "Manyara": 126,
+  "Lindi": 99,
+  "nan": 41,
+  "Iringa": 1
+ },
+ "exact_coord_duplicates": 0,
+ "wpdx_id_duplicates": 0,
+ "nn_within_1m": 12,
+ "nn_within_10m": 264,
+ "nn_within_25m": 473,
+ "nn_within_50m": 1101,
+ "is_duplicate_flag_true": 62,
+ "nn_dist_quantiles_m": {
+  "0.05": 40.75661175777498,
+  "0.25": 181.57816493272225,
+  "0.5": 371.2526443596229,
+  "0.75": 773.9475994694857,
+  "0.95": 2214.2530508961713
+ },
+ "neighbors_within_1km_median": 3.0,
+ "neighbors_within_1km_zero_share": 0.18061422536819272,
+ "nearest_functional_other_km_quantiles": {
+  "0.25": 0.28467220798341747,
+  "0.5": 0.6770274189210391,
+  "0.75": 1.7390495083400215,
+  "0.95": 6.805356907321255
+ },
+ "status_id_counts": {
+  "Yes": 9917,
+  "No": 7601
+ },
+ "status_clean_counts": {
+  "Non-Functional": 8640,
+  "Non-Functional, dry season": 5137,
+  "Functional": 2978,
+  "Functional, needs repair": 375,
+  "Abandoned/Decommissioned": 328,
+  "Others": 44,
+  "Functional, not in use": 16
+ },
+ "dry_season_nonfunctional": 5137,
+ "status_by_dataset": {
+  "AMREF SNV Concern and WA_Tanzania_2005-2008": {
+   "Abandoned/Decommissioned": 306,
+   "Functional": 2706,
+   "Functional, needs repair": 64,
+   "Functional, not in use": 16,
+   "Non-Functional": 8485,
+   "Non-Functional, dry season": 5083,
+   "Others": 44
+  },
+  "Global Water Institute_Tanzania_2021": {
+   "Non-Functional": 15
+  },
+  "Ongawa_Tanzania_2008": {
+   "Abandoned/Decommissioned": 6,
+   "Functional": 193,
+   "Functional, needs repair": 310
+  },
+  "WPDx Reingestion_Global": {
+   "Abandoned/Decommissioned": 16,
+   "Functional": 79,
+   "Functional, needs repair": 1,
+   "Non-Functional": 85,
+   "Non-Functional, dry season": 54
+  },
+  "WaterAid_Global_2019-2020": {
+   "Non-Functional": 55
+  }
+ },
+ "functional_rate_by_report_year": {
+  "1978": 0.0,
+  "2002": 0.818,
+  "2003": 1.0,
+  "2004": 0.602,
+  "2005": 0.498,
+  "2006": 0.436,
+  "2007": 0.666,
+  "2008": 0.573,
+  "2009": 0.436,
+  "2013": 1.0,
+  "2014": 1.0,
+  "2016": 1.0,
+  "2019": 1.0,
+  "2020": 1.0,
+  "2021": 1.0,
+  "2022": 0.053,
+  "2024": 0.0
+ },
+ "functional_rate": 0.5661034364653499,
+ "status_id_vs_status_clean": {
+  "No": {
+   "Abandoned/Decommissioned": 287,
+   "Functional": 160,
+   "Functional, needs repair": 12,
+   "Functional, not in use": 7,
+   "Non-Functional": 2943,
+   "Non-Functional, dry season": 4183,
+   "Others": 9
+  },
+  "Yes": {
+   "Abandoned/Decommissioned": 41,
+   "Functional": 2818,
+   "Functional, needs repair": 363,
+   "Functional, not in use": 9,
+   "Non-Functional": 5697,
+   "Non-Functional, dry season": 954,
+   "Others": 35
+  }
+ },
+ "rehab_year_nonnull": 0,
+ "rehabilitator_nonnull": 0,
+ "install_year_min_max": [
+  1921.0,
+  2020.0
+ ],
+ "install_year_after_report_year": 21,
+ "age_at_report_negative": 21,
+ "age_quantiles": {
+  "0.05": 1.0,
+  "0.25": 4.0,
+  "0.5": 10.0,
+  "0.75": 23.0,
+  "0.95": 35.0
+ },
+ "history_obs_counts": {
+  "1": 17489,
+  "2": 28,
+  "3": 1
+ },
+ "multi_obs_points": 29,
+ "multi_obs_sources": {
+  "SNV": 15,
+  "WaterAid": 7,
+  "WaterAid UK": 4,
+  "Mwanza": 2,
+  "World Serve Intl": 1
+ },
+ "multi_obs_status_sequences": {
+  "Yes->Yes": 24,
+  "No->Yes": 2,
+  "No->No": 2,
+  "Yes->Yes->Yes": 1
+ },
+ "multi_obs_example_dates": [
+  [
+   "2019-07-10",
+   "2020-03-14"
+  ],
+  [
+   "2019-07-10",
+   "2020-03-14"
+  ],
+  [
+   "2020-03-13",
+   "2020-03-14"
+  ],
+  [
+   "2019-07-10",
+   "2020-03-13"
+  ]
+ ],
+ "single_obs_with_history_report_dates_all_same_as_report_date": true,
+ "notes_keyword_hits": {
+  "broken/breakdown": 0,
+  "dry": 0,
+  "repair/rehab": 0,
+  "pump/spare": 22
+ },
+ "notes_nonnull": 17380,
+ "status_raw_nonnull": 17429,
+ "status_raw_top": {
+  "Enough Water Quantity,": 6515,
+  "Insufficient Water Quantity,": 4293,
+  "Seasonal Water Quantity,": 682,
+  "Dry Water Quantity,": 427,
+  "Not recorded Water Quantity,": 383,
+  "Functional": 310,
+  "Insufficient Water Quantity, Under repair": 190,
+  "Technical problem": 171
+ },
+ "notes_examples": [
+  "Kazarwe",
+  "Kwa Stephen",
+  "Ndughera",
+  "Gidbaso primary",
+  "Kanindo",
+  "Kachwankima",
+  "Kanisani",
+  "Shuleni"
+ ],
+ "missingness_pct": {
+  "#clean_adm4": 100.0,
+  "#rehabilitator": 100.0,
+  "#rehab_year": 100.0,
+  "#fecal_coliform_value": 100.0,
+  "#orig_lnk": 100.0,
+  "#fecal_coliform_presence": 100.0,
+  "#adm3": 99.9,
+  "#activity_id": 99.6,
+  "is_duplicate": 99.6,
+  "#photo_lnk": 99.5,
+  "#scheme_id": 62.5,
+  "rehab_priority": 58.4,
+  "#pop_who_would_gain_access": 58.2,
+  "#water_tech_category": 5.9,
+  "#water_tech_clean": 5.7,
+  "#install_year": 5.5,
+  "pressure_score": 2.9,
+  "crucialness_score": 2.9,
+  "local_population_1km": 2.5,
+  "water_point_population": 2.5,
+  "#management_clean": 2.3,
+  "#installer": 1.8,
+  "#subjective_quality_clean": 1.3,
+  "#subjective_quality": 1.1,
+  "#management": 1.1,
+  "#notes": 0.8,
+  "#pay": 0.6,
+  "#pay_clean": 0.6,
+  "#adm2": 0.5,
+  "#status": 0.5,
+  "#water_tech": 0.5,
+  "#adm1": 0.5,
+  "#water_source": 0.1,
+  "converted": 0.1,
+  "#water_source_clean": 0.0,
+  "#status_id": 0.0,
+  "#report_date": 0.0,
+  "#lat_deg": 0.0,
+  "#lon_deg": 0.0,
+  "#source": 0.0,
+  "row_id": 0.0,
+  "#water_source_category": 0.0,
+  "#distance_to_town": 0.0,
+  "#distance_to_city": 0.0,
+  "#distance_to_tertiary_road": 0.0,
+  "#distance_to_secondary_road": 0.0,
+  "#distance_to_primary_road": 0.0,
+  "#data_lnk": 0.0,
+  "#country_id": 0.0,
+  "#wpdx_id": 0.0,
+  "#clean_adm2": 0.0,
+  "#clean_adm3": 0.0,
+  "#clean_country_id": 0.0,
+  "#facility_type": 0.0,
+  "#clean_country_name": 0.0,
+  "#clean_adm1": 0.0,
+  "#status_clean": 0.0,
+  "water_point_history": 0.0,
+  "#country_name": 0.0,
+  "location_id": 0.0,
+  "is_urban": 0.0,
+  "latest_record": 0.0,
+  "staleness_score": 0.0,
+  "usage_capacity": 0.0,
+  "days_since_report": 0.0,
+  "cluster_size": 0.0,
+  "New Georeferenced Column ": 0.0,
+  "public_data_source": 0.0,
+  "lat_lon_deg": 0.0,
+  "count": 0.0,
+  "created_timestamp": 0.0,
+  "updated_timestamp": 0.0,
+  "dataset_title": 0.0
+ },
+ "water_source_counts": {
+  "Borehole/Tubewell": 6063,
+  "Protected Well": 5962,
+  "Protected Spring": 4977,
+  "Rainwater Harvesting": 362,
+  "Piped Water": 102,
+  "Undefined Well": 49,
+  "Packaged Water": 1,
+  "Delivered Water": 1,
+  "nan": 1
+ },
+ "water_tech_category_counts": {
+  "Hand Pump": 10566,
+  "Public Tapstand": 5879,
+  "nan": 1041,
+  "Motorized Pump": 32
+ },
+ "water_tech_clean_counts": {
+  "Public Tapstand": 5526,
+  "Hand Pump - Nira": 3611,
+  "Hand Pump - Mono": 2029,
+  "Hand Pump - SWN 80": 1840,
+  "Hand Pump": 1411,
+  "nan": 994,
+  "Hand Pump - India Mark": 850,
+  "Hand Pump - Afridev": 736,
+  "Hand Pump - Rope": 405,
+  "Hand Pump - Climax": 52,
+  "Motorized Pump": 32,
+  "Hand Pump - Walimi": 30,
+  "Hand Pump - Malda": 2
+ },
+ "management_counts": {
+  "Community Management": 15520,
+  "Direct Government Operation": 507,
+  "No Management": 480,
+  "Private Operator/Delegated Management": 409,
+  "nan": 408,
+  "Other": 174,
+  "School Management": 20
+ },
+ "pay_counts": {
+  "No payment": 6883,
+  "Blank/unknown": 6344,
+  "Fees collected \u2013 upon breakdown": 1534,
+  "Fees collected \u2013 monthly": 1249,
+  "Fees collected \u2013 metered": 857,
+  "Fees collected \u2013 annually": 544,
+  "nan": 107
+ },
+ "installer_top": {
+  "Government": 2001,
+  "Local government": 1822,
+  "HESAWA": 1653,
+  "Central government": 908,
+  "TCRS": 753,
+  "WAMMA": 545,
+  "DANIDA": 542,
+  "RC Mission": 450
+ },
+ "dataset_titles": {
+  "AMREF SNV Concern and WA_Tanzania_2005-2008": 16704,
+  "Ongawa_Tanzania_2008": 509,
+  "WPDx Reingestion_Global": 235,
+  "WaterAid_Global_2019-2020": 55,
+  "Global Water Institute_Tanzania_2021": 15
+ },
+ "sources": {
+  "WaterAid": 10861,
+  "SNV": 3970,
+  "Concern": 1330,
+  "Ongawa": 509,
+  "AMREF": 373,
+  "Plan": 330,
+  "WaterAid UK": 55,
+  "ISF": 36,
+  "Southern Highlands Participatory Organization (SHIPO)": 20,
+  "Mwanza": 19,
+  "World Serve Intl": 15
+ },
+ "wpdx_plus_derived_quantiles": {
+  "distance_to_primary_road": {
+   "0.05": 585.3224472257011,
+   "0.5": 30588.6366224936,
+   "0.95": 148610.19691530115
+  },
+  "distance_to_secondary_road": {
+   "0.05": 99.508476983299,
+   "0.5": 7566.654508411695,
+   "0.95": 51008.54101045305
+  },
+  "distance_to_tertiary_road": {
+   "0.05": 34.2185842740065,
+   "0.5": 1604.07881238782,
+   "0.95": 16840.10177742286
+  },
+  "distance_to_city": {
+   "0.05": 21219.420333440798,
+   "0.5": 74413.49447105132,
+   "0.95": 170467.2482646485
+  },
+  "distance_to_town": {
+   "0.05": 2204.5499543583232,
+   "0.5": 20970.44183210218,
+   "0.95": 69161.42101639957
+  },
+  "local_population_1km": {
+   "0.05": 185.0,
+   "0.5": 1028.0,
+   "0.95": 5254.549999999997
+  },
+  "water_point_population": {
+   "0.05": 60.0,
+   "0.5": 449.0,
+   "0.95": 2436.6499999999996
+  },
+  "crucialness_score": {
+   "0.05": 0.087732127398,
+   "0.5": 0.52348066298,
+   "0.95": 1.0
+  },
+  "pressure_score": {
+   "0.05": 0.24,
+   "0.5": 1.59666666667,
+   "0.95": 9.66
+  }
+ },
+ "rehab_priority_nonnull": 7288,
+ "rehab_priority_nonnull_share_by_status_id": {
+  "No": 0.959,
+  "Yes": 0.0
+ },
+ "is_urban_true": 164
+}

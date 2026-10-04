@@ -1,0 +1,12 @@
+{
+ "name": "hotosm_tza_education_facilities",
+ "title": "Education Facilities of Tanzania",
+ "license_title": "Open Database License (ODC-ODbL)",
+ "dataset_date": "[2026-09-10T00:00:00 TO 2026-09-10T23:59:59]",
+ "last_modified": "2026-09-10T05:50:19.211754",
+ "methodology": "Other",
+ "dataset_source": "OpenStreetMap contributors",
+ "notes": "Education facilities: schools, kindergartens, colleges, and universities tagged via `amenity` or `building`. Useful for school-access mapping, education planning, and resource allocation.\n\nCoverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.\n\n- Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map\n- Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building)\n- Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)\n",
+ "resource_url": "https://production-raw-data-api.s3.amazonaws.com/ISO3/TZA/education_facilities/hotosm_tza_education_facilities_osm_geojson.zip",
+ "download_date": "2026-09-20"
+}

@@ -1,0 +1,80 @@
+feature_name,source_dataset,meaning,data_type,spatial_relationship,temporal_relationship,available_now,requires_processing,candidate_ml_feature,leakage_risk,example
+master_id,MajiGuard,Row key MG000001…,string,-,-,yes,generated,no,none,MG000015
+wpdx_id,WPdx+ Tanzania (water_points),WPdx unique id (Plus Code based),string,point,-,yes,none,no (key),none,5GXQGQ9C+MCR
+row_id_export,WPdx+ Tanzania (water_points),row_id of this WPdx+ export (not stable across products),string,-,-,yes,none,no,none,"256,094"
+latitude,WPdx+ Tanzania (water_points),WGS84 latitude of the water point,float,point,-,yes,validated against ADM0,yes (coarse/spatial CV only),low,-10.48
+longitude,WPdx+ Tanzania (water_points),WGS84 longitude,float,point,-,yes,validated against ADM0,yes (coarse/spatial CV only),low,35.77
+survey_date,WPdx+ Tanzania (water_points),Date the status/attributes were recorded (#report_date),datetime,-,observation date,yes,parsed,no (use year/month),low,2007-09-13 00:00:00
+survey_year,WPdx+ Tanzania (water_points),Year of survey,int,-,observation date,yes,derived,control only,medium (confounded with source),2007
+survey_month,WPdx+ Tanzania (water_points),Month of survey (season control),int,-,observation date,yes,derived,yes,low,9
+source_dataset_title,WPdx+ Tanzania (water_points),WPdx dataset the row came from,string,-,-,yes,none,no (validation groups),high (label convention differs by dataset),AMREF SNV Concern and WA_Tanzania_2005-2008
+source_org,WPdx+ Tanzania (water_points),Organisation that collected the row,string,-,-,yes,none,no (validation groups),high,WaterAid
+water_source,WPdx+ Tanzania (water_points),Clean water-source type,category,point,at survey,yes,none,yes,low,Protected Spring
+water_technology,WPdx+ Tanzania (water_points),Clean water technology (e.g. Hand Pump - Nira),category,point,at survey,yes,group rare classes,yes,low,Public Tapstand
+water_tech_category,WPdx+ Tanzania (water_points),Hand pump / Public tapstand / Motorized,category,point,at survey,yes,none,yes,low,Public Tapstand
+management_type,WPdx+ Tanzania (water_points),"Management model (community, government, …)",category,point,at survey,yes,none,yes,low,Community Management
+payment_type,WPdx+ Tanzania (water_points),Payment regime,category,point,at survey,yes,none,yes,low,Fees collected – monthly
+installer,WPdx+ Tanzania (water_points),"Installer (free text, 418 values)",string,point,-,yes,group top-N,maybe,low,Government
+install_year,WPdx+ Tanzania (water_points),Installation year (5.5% missing; 21 invalid > survey year),int,point,install date,yes,clean invalid,via age,low,1994.0
+age_at_survey_years,WPdx+ Tanzania (water_points),survey_year − install_year (negative = invalid),float,point,at survey,yes,set negatives to NaN,yes,low,13.0
+usage_capacity,WPdx+ Tanzania (water_points),WPdx capacity by technology (50/250/300 people),int,point,-,yes,none,maybe,low (technology-derived),250.0
+subjective_water_quality,WPdx+ Tanzania (water_points),Perceived quality (taste/colour/acceptable),category,point,at survey,yes,none,with caution,medium (may reflect status),Acceptable quality
+status_clean,WPdx+ Tanzania (water_points),WPdx cleaned status (7 classes),category,point,at survey,yes,see target_definition.md,LABEL only,IS the target,Functional
+status_id,WPdx+ Tanzania (water_points),Yes/No functional flag (conflicts with status_clean on 39%),category,point,at survey,yes,see target_definition.md,LABEL only,IS the target,Yes
+status_raw_text,WPdx+ Tanzania (water_points),Raw status text (water-quantity remarks),string,point,at survey,yes,-,no,high,"Insufficient Water Quantity,"
+label_functional_status_clean,MajiGuard,"1=functional-type, 0=non-functional-type (from status_clean)",float,point,at survey,yes,derived,LABEL,IS the target,1.0
+label_functional_status_id,MajiGuard,1/0 from status_id,float,point,at survey,yes,derived,LABEL (agreement check),IS the target,1
+inside_tz_adm0,geoBoundaries ADM0,Point inside Tanzania polygon,bool,point-in-polygon,-,yes,spatial join,no (QA),none,True
+dist_to_tz_border_m,geoBoundaries ADM0,Distance outside polygon (0 if inside),float,point-polygon,-,yes,computed EPSG:32736,no (QA),none,0.0
+nbs_region,NBS 2022 PHC ward shapefile (geographic),Region by point-in-polygon (NBS 2022),category,point-in-polygon,2022 boundaries,yes,spatial join,grouping / maybe,low,Ruvuma
+nbs_district,NBS 2022 PHC ward shapefile (geographic),District by point-in-polygon,category,point-in-polygon,2022 boundaries,yes,spatial join,grouping,low,Namtumbo
+nbs_ward,NBS 2022 PHC ward shapefile (geographic),Ward by point-in-polygon,category,point-in-polygon,2022 boundaries,yes,spatial join,grouping (spatial CV),low,Hanga
+nbs_ward_code,NBS 2022 PHC ward shapefile (geographic),Ward code,string,point-in-polygon,2022 boundaries,yes,spatial join,grouping,none,163
+wpdx_adm1_region,WPdx+ Tanzania (water_points),WPdx region name (legacy spelling; 47 conflicts with polygons),category,-,-,yes,-,no,none,Ruvuma
+wpdx_adm2_district,WPdx+ Tanzania (water_points),WPdx district name,category,-,-,yes,-,no,none,Namtumbo
+wpdx_region_matches_nbs,MajiGuard,WPdx region equals polygon region,bool,-,-,yes,derived,no (QA),none,True
+wpdx_is_urban,WPdx+ Tanzania (water_points),WPdx urban flag (164 True),bool,point,-,yes,-,maybe,low,False
+dist_nearest_any_water_point_m,WPdx+ Tanzania points (spatial context),Distance to nearest other recorded water point (any status),float,"nearest neighbour (KD-tree, EPSG:32736)",static,yes,computed,yes,low (depends on inventory completeness),165.61
+n_water_points_within_500m,WPdx+ Tanzania points (spatial context),Count of other recorded points within 500 m,int,radius,static,yes,computed,yes,low,3
+n_water_points_within_1000m,WPdx+ Tanzania points (spatial context),… within 1 km,int,radius,static,yes,computed,yes,low,8
+n_water_points_within_5000m,WPdx+ Tanzania points (spatial context),… within 5 km,int,radius,static,yes,computed,yes,low,50
+wpdx_is_duplicate_flag,WPdx+ Tanzania (water_points),WPdx duplicate flag (62 true),bool,-,-,yes,-,no (filter),none,
+n_history_observations,WPdx+ Tanzania (water_points),Number of observations in water_point_history (max 3),int,-,-,yes,-,no,low,1
+wpdx_dist_primary_road_m,WPdx+ Tanzania (water_points),WPdx+ distance to primary road (method undocumented),float,precomputed,unknown,yes,verify vs OSM,yes (provisional),low,196974.11
+wpdx_dist_secondary_road_m,WPdx+ Tanzania (water_points),WPdx+ distance to secondary road,float,precomputed,unknown,yes,verify vs OSM,yes (provisional),low,2322.37
+wpdx_dist_tertiary_road_m,WPdx+ Tanzania (water_points),WPdx+ distance to tertiary road,float,precomputed,unknown,yes,verify vs OSM,yes (provisional),low,3509.9
+wpdx_dist_city_m,WPdx+ Tanzania (water_points),WPdx+ distance to city,float,precomputed,unknown,yes,verify,yes (provisional),low,25683.07
+wpdx_dist_town_m,WPdx+ Tanzania (water_points),WPdx+ distance to town,float,precomputed,unknown,yes,verify,yes (provisional),low,14552.5
+wpdx_local_population_1km,WPdx+ Tanzania (water_points),WPdx+ population within 1 km (Meta HRSL per WPdx docs),float,radius 1 km,fixed vintage,yes,-,comparison only,low,840.0
+wpdx_water_point_population_LEAKY,WPdx+ Tanzania (water_points),WPdx+ potential users assigned to this point,float,1 km,-,yes,-,NO,HIGH (uses functional neighbours),76.0
+wpdx_crucialness_score_LEAKY,WPdx+ Tanzania (water_points),WPdx+ crucialness,float,1 km,-,yes,-,NO,HIGH,0.09
+wpdx_pressure_score_LEAKY,WPdx+ Tanzania (water_points),WPdx+ pressure,float,1 km,-,yes,-,NO,HIGH,0.3
+wpdx_rehab_priority_LEAKY,WPdx+ Tanzania (water_points),"WPdx+ rehab priority (95.9% populated for status_id=No, 0% for Yes)",float,-,-,yes,-,NO,HIGH (status-defined),
+wpdx_pop_would_gain_access_LEAKY,WPdx+ Tanzania (water_points),WPdx+ population who would gain access,float,-,-,yes,-,NO,HIGH,
+dist_nearest_functional_other_m_LEAKY,WPdx+ Tanzania points (spatial context),Distance to nearest other point labelled functional,float,nearest neighbour,at survey,yes,-,NO for training; OK for dashboard with CURRENT status,HIGH,165.61
+rain_3m_prior_mm,CHIRPS v3.0 monthly (climate),Rainfall total in the 3 months before the survey month,float,raster cell at point (nearest 0.05° cell),window ends month before survey,yes,extracted,yes,low,7.1
+rain_3m_pct_of_normal,CHIRPS v3.0 monthly (climate),3-month total ÷ 1991–2020 mean of same window ×100,float,cell,same,yes,extracted,yes,low,109.44
+rain_3m_z,CHIRPS v3.0 monthly (climate),3-month standardised anomaly (SPI-like),float,cell,same,yes,extracted,yes,low,0.69
+rain_6m_prior_mm,CHIRPS v3.0 monthly (climate),6-month total,float,cell,same,yes,extracted,yes,low,446.09
+rain_6m_pct_of_normal,CHIRPS v3.0 monthly (climate),6-month % of normal,float,cell,same,yes,extracted,yes,low,85.59
+rain_6m_z,CHIRPS v3.0 monthly (climate),6-month standardised anomaly,float,cell,same,yes,extracted,yes,low,-0.51
+rain_12m_prior_mm,CHIRPS v3.0 monthly (climate),12-month total before survey month,float,cell,same,yes,extracted,yes,low,1733.45
+rain_12m_pct_of_normal,CHIRPS v3.0 monthly (climate),12-month % of normal,float,cell,same,yes,extracted,yes,low,117.66
+rain_12m_z,CHIRPS v3.0 monthly (climate),12-month standardised anomaly,float,cell,same,yes,extracted,yes,low,0.9
+rain_mean_annual_1991_2020_mm,CHIRPS v3.0 monthly (climate),Long-term mean annual rainfall,float,cell,1991–2020 climatology,yes,extracted,yes,low,1476.3
+dry_months_prior12_lt30mm,CHIRPS v3.0 monthly (climate),Months <30 mm in the 12 months before survey (drought proxy),float,cell,same,yes,extracted,yes,low,6.0
+rain_features_available,MajiGuard,False if survey before 1982-01,bool,-,-,yes,derived,no (QA),none,True
+worldpop2022_pop_within_500m,WorldPop R2025A 2022 100m (population),People within 500 m (sum of 100 m cells),float,"radius, metric distance to cell centres",2022 population,yes,extracted,yes,low,308.73
+worldpop2022_pop_within_1000m,WorldPop R2025A 2022 100m (population),People within 1 km,float,radius,2022,yes,extracted,yes (impact),low,1045.3
+worldpop2022_pop_within_2000m,WorldPop R2025A 2022 100m (population),People within 2 km,float,radius,2022,yes,extracted,sensitivity,low,1673.71
+worldpop2022_density_per_km2_1km,WorldPop R2025A 2022 100m (population),pop_within_1000m ÷ π km²,float,radius,2022,yes,derived,yes,low,332.73
+dist_nearest_health_facility_m,Healthsites.io (geographic),Distance to nearest health facility (centroid),float,nearest neighbour,2011–2025 mixed,yes,computed,impact/context,low,15410.03
+dist_nearest_school_m,OSM education facilities (geographic),Distance to nearest OSM education facility,float,nearest neighbour,2026-09 snapshot,yes,computed,impact/context,low,692.51
+temp_mean_prior3m_c,ERA5-Land monthly (climate),Mean 2 m temperature in prior 3 months,float,0.1° cell,window before survey/analysis date,no,manual CDS download,yes,low,
+soil_moisture_l1l2_prior3m,ERA5-Land monthly (climate),Volumetric soil water 0–28 cm,float,0.1° cell,same,no,manual CDS download,yes,low,
+dist_nearest_road_osm_m,OSM roads (geographic),Distance to nearest road (all classes),float,nearest line,OSM snapshot,no,download Geofabrik/HOT roads + compute,yes,low,
+road_density_5km_km_per_km2,OSM roads (geographic),Road length per km² in 5 km buffer,float,buffer,snapshot,no,same,yes,low,
+estimated_population_served,WorldPop + all water points,Cell population shared among water points within R (inverse-distance),float,catchment,2022,no,compute (all statuses),impact (dashboard),low,
+ward_population_2022,NBS Census 2022 Vol 1a,Ward total population,int,ward polygon,2022,partly (79% of wards matched),improve name matching,control/report,low,
+current_status_2026,New survey / MoW / RUWASA (Track C),Current functionality,category,point,2026,no,must be obtained,LABEL for dashboard/validation,IS the target,
+n_functional_alternatives_within_1km_current,New status data + point layer,Functional alternatives now,int,radius,current,no,needs current status,dashboard impact only,HIGH if used for training,

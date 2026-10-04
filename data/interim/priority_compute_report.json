@@ -1,0 +1,11 @@
+{
+  "run_at": "2026-10-03T06:38:50.390316+00:00",
+  "summary": {
+    "total_water_points": 17518,
+    "preventive_eligible": 27,
+    "restoration_eligible": 774,
+    "rows_written": 35036,
+    "elapsed_seconds": 7.89,
+    "priority_methodology_version": "priority_v2"
+  }
+}

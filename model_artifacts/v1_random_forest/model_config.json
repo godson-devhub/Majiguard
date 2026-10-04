@@ -1,0 +1,17 @@
+{
+  "model_name": "Random Forest",
+  "pipeline_version": "v1_random_forest",
+  "target": "label_functional_status_id",
+  "non_functional_class": 0,
+  "functional_class": 1,
+  "probability_threshold": 0.4,
+  "raw_input_feature_count": 42,
+  "processed_feature_count": 105,
+  "trained_with_scikit_learn": "1.6.1",
+  "repackaged_with_scikit_learn": "1.9.0",
+  "train_test_split": {
+    "test_size": 0.2,
+    "stratify": true,
+    "random_state": 42
+  }
+}

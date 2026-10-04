@@ -1,0 +1,129 @@
+{
+ "chirps_grid_shape": [
+  548,
+  230,
+  240
+ ],
+ "chirps_points_on_nodata_cell": 0,
+ "rain_features_available_n": 17517,
+ "rain_features_missing_n": 1,
+ "rain_features_missing_reason": "survey date before 1982-01 or missing",
+ "worldpop_total_2022": 63766640.0,
+ "corr_worldpop1km_vs_wpdxplus_local_pop_1km_pearson": 0.8487711584063656,
+ "corr_spearman": 0.9099106690320931,
+ "median_ratio_worldpop_over_wpdx": 1.023658173659752,
+ "worldpop_1km_quantiles": {
+  "0.05": 243.72150497436525,
+  "0.25": 549.6842956542969,
+  "0.5": 986.64990234375,
+  "0.75": 1869.7676391601562,
+  "0.95": 6441.3471679687445
+ },
+ "worldpop_1km_zero_share": 0.0008562621303801804,
+ "healthsites_n": 6729,
+ "osm_education_layer": "education_facilities.geojson",
+ "osm_education_n": 103030,
+ "dist_health_quantiles_m": {
+  "0.25": 1254.5204822325004,
+  "0.5": 3586.4842259444204,
+  "0.75": 8011.167170082968,
+  "0.95": 35132.261896552416
+ },
+ "dist_school_quantiles_m": {
+  "0.25": 439.59065564769,
+  "0.5": 811.2673289423664,
+  "0.75": 1444.0986748158678,
+  "0.95": 3275.1751593915315
+ },
+ "label_disagreement_status_id_vs_clean": 0.3932127732631338,
+ "eda_n": 17473,
+ "eda_nonfunctional_share_by_tercile__rain_12m_z": {
+  "0": 0.817,
+  "1": 0.785,
+  "2": 0.82
+ },
+ "eda_spearman_with_label__rain_12m_z": -0.021,
+ "eda_nonfunctional_share_by_tercile__rain_3m_z": {
+  "0": 0.763,
+  "1": 0.839,
+  "2": 0.82
+ },
+ "eda_spearman_with_label__rain_3m_z": -0.077,
+ "eda_nonfunctional_share_by_tercile__rain_mean_annual_1991_2020_mm": {
+  "0": 0.781,
+  "1": 0.844,
+  "2": 0.797
+ },
+ "eda_spearman_with_label__rain_mean_annual_1991_2020_mm": -0.001,
+ "eda_nonfunctional_share_by_tercile__dry_months_prior12_lt30mm": {
+  "0": 0.873,
+  "1": 0.77,
+  "2": 0.753
+ },
+ "eda_spearman_with_label__dry_months_prior12_lt30mm": 0.115,
+ "eda_nonfunctional_share_by_tercile__worldpop2022_pop_within_1000m": {
+  "0": 0.85,
+  "1": 0.809,
+  "2": 0.763
+ },
+ "eda_spearman_with_label__worldpop2022_pop_within_1000m": 0.099,
+ "eda_nonfunctional_share_by_tercile__age_at_report": {
+  "0": 0.79,
+  "1": 0.814,
+  "2": 0.819
+ },
+ "eda_spearman_with_label__age_at_report": -0.028,
+ "eda_nonfunctional_share_by_tercile__dist_nearest_health_facility_m": {
+  "0": 0.789,
+  "1": 0.834,
+  "2": 0.798
+ },
+ "eda_spearman_with_label__dist_nearest_health_facility_m": -0.009,
+ "eda_nonfunctional_share_by_survey_month": {
+  "1": 0.789,
+  "2": 0.847,
+  "3": 0.856,
+  "4": 0.762,
+  "5": 0.874,
+  "6": 0.861,
+  "7": 0.692,
+  "8": 0.832,
+  "9": 0.769,
+  "10": 0.863,
+  "11": 0.794,
+  "12": 0.805
+ },
+ "eda_n_by_survey_month": {
+  "1": 1328,
+  "2": 1316,
+  "3": 968,
+  "4": 646,
+  "5": 1068,
+  "6": 1679,
+  "7": 2216,
+  "8": 881,
+  "9": 1843,
+  "10": 2100,
+  "11": 1228,
+  "12": 2200
+ },
+ "master_rows": 17518,
+ "master_cols": 71,
+ "master_missing_pct_top": {
+  "wpdx_is_duplicate_flag": 99.6,
+  "wpdx_rehab_priority_LEAKY": 58.4,
+  "wpdx_pop_would_gain_access_LEAKY": 58.2,
+  "water_tech_category": 5.9,
+  "water_technology": 5.7,
+  "age_at_survey_years": 5.5,
+  "install_year": 5.5,
+  "wpdx_crucialness_score_LEAKY": 2.9,
+  "wpdx_pressure_score_LEAKY": 2.9,
+  "wpdx_water_point_population_LEAKY": 2.5,
+  "wpdx_local_population_1km": 2.5,
+  "management_type": 2.3,
+  "installer": 1.8,
+  "subjective_water_quality": 1.3,
+  "payment_type": 0.6
+ }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "mcp": {
+    "shadcn": {
+      "type": "local",
+      "command": ["npx", "-y", "shadcn@latest", "mcp"],
+      "enabled": true,
+      "timeout": 120000
+    },
+    "21st": {
+      "type": "remote",
+      "url": "https://21st.dev/api/mcp",
+      "headers": {
+        "x-api-key": "{env:API_KEY_21ST}"
+      },
+      "enabled": false,
+      "timeout": 30000
+    },
+    "magicui": {
+      "type": "local",
+      "command": ["npx", "-y", "@magicuidesign/mcp@latest"],
+      "enabled": false,
+      "timeout": 120000
+    }
+  },
+  "permission": {
+    "shadcn_*": "allow",
+    "magicui_*": "allow",
+    "21st_*": "ask"
+  }
+}
