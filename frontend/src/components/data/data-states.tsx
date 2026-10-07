@@ -1,4 +1,4 @@
-import { CircleAlert, FileQuestion, Inbox, WifiOff } from 'lucide-react'
+import { CircleAlert, FileQuestion, Inbox, MapPinned, WifiOff } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { useI18n } from '@/app/providers/locale-provider'
@@ -79,6 +79,24 @@ export function EmptyState({ title, body }: { title?: string; body?: string }) {
       tone="neutral"
       title={title ?? t('data.empty.title')}
       description={body ?? t('data.empty.body')}
+    />
+  )
+}
+
+/**
+ * The view needs a Region (or similar) before it can show anything. This is
+ * guidance, not a failure and not an empty result, so it is informational and
+ * never reads "no data matches".
+ */
+export function ScopeRequiredState({ title, body }: { title?: string; body?: string }) {
+  const { t } = useI18n()
+
+  return (
+    <StatePanel
+      icon={MapPinned}
+      tone="info"
+      title={title ?? t('state.scopeRequired.title')}
+      description={body ?? t('state.scopeRequired.body')}
     />
   )
 }

@@ -65,16 +65,15 @@ export function MasterIdSearch({ onResolve, autoFocus = false, className }: Mast
             aria-describedby={undefined}
             spellCheck={false}
             autoComplete="off"
-            className="h-9 pl-8"
+            className="pl-8"
           />
         </div>
-        <Button type="submit" size="sm" disabled={query.trim().length === 0 || results.isPending}>
+        <Button type="submit" disabled={query.trim().length === 0 || results.isPending}>
           {results.isPending ? t('search.loading') : t('search.label')}
         </Button>
         {query.length > 0 || submitted.length > 0 ? (
           <Button
             type="button"
-            size="sm"
             variant="ghost"
             aria-label={t('search.clear')}
             onClick={() => {

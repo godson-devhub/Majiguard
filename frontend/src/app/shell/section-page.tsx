@@ -18,6 +18,9 @@ type SectionPageProps = {
   toolbar?: ReactNode
   /** Small provenance line under the description. Never an endpoint path. */
   sourceNote?: string
+  /** A shorter header for screens where the content (the map) must dominate:
+   * a smaller title, the description only from `md` up, no source note. */
+  compact?: boolean
 }
 
 /**
@@ -33,13 +36,14 @@ export function SectionPage({
   eyebrowKey,
   toolbar,
   sourceNote,
+  compact = false,
   children,
 }: SectionPageProps) {
   const { t } = useI18n()
 
   return (
-    <div className="space-y-6">
-      <header className="border-b border-border pb-5">
+    <div className={compact ? 'space-y-5' : 'space-y-8'}>
+      <header className={cn('relative border-b border-border', compact ? 'pb-4' : 'pb-7')}>
         {eyebrowKey === undefined ? null : (
           <p className="text-mg-caption font-medium uppercase tracking-wider text-muted-foreground">
             {t(eyebrowKey)}
@@ -48,14 +52,22 @@ export function SectionPage({
         <h1
           id="page-title"
           tabIndex={-1}
-          className="text-mg-display font-semibold tracking-tight text-foreground"
+          className={cn(
+            'font-semibold leading-[.98] tracking-[-.045em] text-foreground [text-wrap:balance]',
+            compact ? 'text-mg-title-lg' : 'text-[clamp(2.3rem,5vw,4.6rem)]',
+          )}
         >
           {t(titleKey)}
         </h1>
-        <p className="mt-2 max-w-[68ch] text-mg-body text-muted-foreground">
+        <p
+          className={cn(
+            'max-w-[68ch] text-muted-foreground',
+            compact ? 'mt-1 hidden text-mg-body-sm md:block' : 'mt-2 text-mg-body',
+          )}
+        >
           {t(descriptionKey)}
         </p>
-        {sourceNote === undefined ? null : (
+        {sourceNote === undefined || compact ? null : (
           <p className="mt-2 text-mg-caption text-muted-foreground">{sourceNote}</p>
         )}
         {toolbar === undefined ? null : <div className="mt-4">{toolbar}</div>}

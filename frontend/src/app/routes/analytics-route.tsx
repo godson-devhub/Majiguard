@@ -3,11 +3,11 @@ import { useSearchParams } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
 import { SectionPage } from '@/app/shell/section-page'
-import { EmptyState, FailureState, LoadingState } from '@/components/data/data-states'
+import { EmptyState, FailureState, LoadingState, ScopeRequiredState } from '@/components/data/data-states'
+import { FilterSelect } from '@/components/data/filter-controls'
 import { formatNumber } from '@/components/data/format'
 import { RegisterFilterBar } from '@/components/data/register-filter-bar'
 import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
 import { preventivePriorityAllQueryOptions, restorationPriorityAllQueryOptions } from '@/hooks/priority'
 import {
   mapPointsAllQueryOptions,
@@ -48,10 +48,17 @@ function RankedBarList({
   rows,
   onSelectArea,
   emptyBody,
+  shareBase,
+  barClass = 'bg-brand/70',
 }: {
   rows: RankedRow[]
   onSelectArea?: (area: string) => void
   emptyBody?: string
+  /** The total across every area in scope; when given, each row also shows its
+   * share of it. A presentational ratio of counts already on screen. */
+  shareBase?: number
+  /** Bar fill. Risk and impact charts pass their semantic colour. */
+  barClass?: string
 }) {
   const { t } = useI18n()
   if (rows.length === 0) {
@@ -82,10 +89,15 @@ function RankedBarList({
             </span>
           )}
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary/70" style={{ width: `${(row.value / max) * 100}%` }} />
+            <div className={cn('h-full rounded-full', barClass)} style={{ width: `${(row.value / max) * 100}%` }} />
           </div>
-          <span className="mg-figure w-14 shrink-0 text-end text-mg-body-sm font-medium text-foreground">
+          <span className="mg-figure w-24 shrink-0 text-end text-mg-body-sm font-medium text-foreground">
             {formatNumber(row.value)}
+            {shareBase !== undefined && shareBase > 0 ? (
+              <span className="ms-1 text-mg-caption font-normal text-muted-foreground">
+                {Math.round((row.value / shareBase) * 1000) / 10}%
+              </span>
+            ) : null}
           </span>
         </li>
       ))}
@@ -148,8 +160,17 @@ function ConditionStackedBars({
                 style={{ width: `${(row.nonFunctional / max) * 100}%` }}
               />
             </div>
-            <span className="mg-figure w-24 shrink-0 text-end text-mg-caption text-foreground">
+            <span className="mg-figure w-36 shrink-0 text-end text-mg-caption text-foreground">
               {formatNumber(row.functional)} / {formatNumber(row.nonFunctional)}
+              <span className="block text-muted-foreground">
+                {t('analytics.nonFunctionalShare', {
+                  percent: `${
+                    row.functional + row.nonFunctional > 0
+                      ? Math.round((row.nonFunctional / (row.functional + row.nonFunctional)) * 1000) / 10
+                      : 0
+                  }%`,
+                })}
+              </span>
             </span>
           </li>
         ))}
@@ -231,6 +252,17 @@ function RiskImpactQuadrantGrid({
 /* ------------------------------------------------------------------ *
  * The Analytics page itself.
  * ------------------------------------------------------------------ */
+
+const SECTION_INDEX: { id: string; titleKey: MessageKey }[] = [
+  { id: 'chart-condition-heading', titleKey: 'analytics.chart.condition.title' },
+  { id: 'chart-risk-heading', titleKey: 'analytics.chart.risk.title' },
+  { id: 'chart-impact-heading', titleKey: 'analytics.chart.impact.title' },
+  { id: 'chart-quadrant-heading', titleKey: 'analytics.chart.quadrant.title' },
+  { id: 'chart-functional-risk-heading', titleKey: 'analytics.chart.functionalRisk.title' },
+  { id: 'chart-high-impact-nonfunctional-heading', titleKey: 'analytics.chart.highImpactNonFunctional.title' },
+  { id: 'chart-pathway-heading', titleKey: 'analytics.chart.pathway.title' },
+  { id: 'chart-ranking-heading', titleKey: 'analytics.chart.ranking.title' },
+]
 
 const RISK_FILTER_VALUES: RiskFilterValue[] = ['all', 'high', 'lower']
 const IMPACT_FILTER_VALUES: ImpactFilterValue[] = ['all', 'high', 'lower']
@@ -503,8 +535,8 @@ export function AnalyticsRoute() {
       sourceNote={t('data.source')}
     >
       <div className="space-y-10">
-        {/* Filters */}
-        <section aria-labelledby="analytics-filters-heading" className="space-y-2.5">
+        {/* Filters: Scope, then the lenses that refine every chart */}
+        <section aria-labelledby="analytics-filters-heading" className="space-y-3">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h2
               id="analytics-filters-heading"
@@ -512,86 +544,87 @@ export function AnalyticsRoute() {
             >
               {t('overview.filters.label')}
             </h2>
-            <Badge variant="outline" className="mg-figure border-sidebar-border bg-sidebar text-sidebar-accent-foreground">
+            <Badge variant="outline" className="mg-figure">
               {scopeBadge}
             </Badge>
           </div>
-          <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-            <RegisterFilterBar value={locationFilters} onChange={setLocationFilters} showStatus={false} />
+          <RegisterFilterBar value={locationFilters} onChange={setLocationFilters} showStatus={false} />
 
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="analytics-condition" className="text-mg-caption font-medium text-muted-foreground">
-                {t('analytics.condition.label')}
-              </Label>
-              <select
-                id="analytics-condition"
+          <div className="space-y-2">
+            <p className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('filters.refine')}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <FilterSelect
+                label={t('analytics.condition.label')}
                 value={condition}
-                onChange={(event) => setCondition(event.target.value as ConditionFilter)}
-                className="h-9 min-w-[9rem] rounded-sm border border-input bg-background px-2.5 text-mg-body-sm text-foreground"
-              >
-                <option value="all">{t('map.filter.condition.all')}</option>
-                <option value="functional">{t('map.filter.condition.functional')}</option>
-                <option value="nonfunctional">{t('map.filter.condition.nonfunctional')}</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="analytics-risk" className="text-mg-caption font-medium text-muted-foreground">
-                {t('analytics.filter.risk.label')}
-              </Label>
-              <select
-                id="analytics-risk"
+                onChange={(value) => {
+                  setCondition(value as ConditionFilter)
+                }}
+                options={[
+                  { value: 'all', label: t('map.filter.condition.all') },
+                  { value: 'functional', label: t('map.filter.condition.functional') },
+                  { value: 'nonfunctional', label: t('map.filter.condition.nonfunctional') },
+                ]}
+              />
+              <FilterSelect
+                label={t('analytics.filter.risk.label')}
                 value={risk}
-                onChange={(event) => setRisk(event.target.value as RiskFilterValue)}
-                className="h-9 min-w-[9rem] rounded-sm border border-input bg-background px-2.5 text-mg-body-sm text-foreground"
-              >
-                {RISK_FILTER_VALUES.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`analytics.filter.risk.${value}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="analytics-impact" className="text-mg-caption font-medium text-muted-foreground">
-                {t('analytics.filter.impact.label')}
-              </Label>
-              <select
-                id="analytics-impact"
+                onChange={(value) => {
+                  setRisk(value as RiskFilterValue)
+                }}
+                options={RISK_FILTER_VALUES.map((value) => ({
+                  value,
+                  label: t(`analytics.filter.risk.${value}`),
+                }))}
+              />
+              <FilterSelect
+                label={t('analytics.filter.impact.label')}
                 value={impact}
-                onChange={(event) => setImpact(event.target.value as ImpactFilterValue)}
-                className="h-9 min-w-[9rem] rounded-sm border border-input bg-background px-2.5 text-mg-body-sm text-foreground"
-              >
-                {IMPACT_FILTER_VALUES.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`analytics.filter.impact.${value}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="analytics-pathway" className="text-mg-caption font-medium text-muted-foreground">
-                {t('analytics.filter.pathway.label')}
-              </Label>
-              <select
-                id="analytics-pathway"
+                onChange={(value) => {
+                  setImpact(value as ImpactFilterValue)
+                }}
+                options={IMPACT_FILTER_VALUES.map((value) => ({
+                  value,
+                  label: t(`analytics.filter.impact.${value}`),
+                }))}
+              />
+              <FilterSelect
+                label={t('analytics.filter.pathway.label')}
                 value={pathway}
-                onChange={(event) => setPathway(event.target.value as PathwayFilterValue)}
-                className="h-9 min-w-[9rem] rounded-sm border border-input bg-background px-2.5 text-mg-body-sm text-foreground"
-              >
-                {PATHWAY_FILTER_VALUES.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`analytics.filter.pathway.${value}`)}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => {
+                  setPathway(value as PathwayFilterValue)
+                }}
+                options={PATHWAY_FILTER_VALUES.map((value) => ({
+                  value,
+                  label: t(`analytics.filter.pathway.${value}`),
+                }))}
+              />
             </div>
           </div>
 
-          {!hasRegion ? <p className="max-w-[72ch] text-mg-caption text-muted-foreground">{t('analytics.scope.nationalNotice')}</p> : null}
+          {!hasRegion ? (
+            <p className="max-w-[72ch] text-mg-caption text-muted-foreground">
+              {t('analytics.scope.nationalNotice')}
+            </p>
+          ) : null}
         </section>
+
+        {/* On this page */}
+        <nav aria-label={t('analytics.index.label')} className="-mt-4">
+          <p className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
+            {t('analytics.index.label')}
+          </p>
+          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-mg-body-sm">
+            {SECTION_INDEX.map((entry) => (
+              <li key={entry.id}>
+                <a href={`#${entry.id}`} className="text-primary underline-offset-2 hover:underline">
+                  {t(entry.titleKey)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         {/* Chart 1: Condition by location */}
         <section aria-labelledby="chart-condition-heading" className="space-y-3 border-t border-border pt-8">
@@ -600,6 +633,9 @@ export function AnalyticsRoute() {
               {t('analytics.chart.condition.title')} — {levelLabel}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.condition.body')}</p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.condition.measures') })}
+            </p>
           </div>
           {conditionPending ? (
             <LoadingState label={t('data.loading')} />
@@ -619,9 +655,12 @@ export function AnalyticsRoute() {
               {hasRegion ? ` — ${levelLabel}` : ''}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.risk.body')}</p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.risk.measures') })}
+            </p>
           </div>
           {!hasRegion ? (
-            <EmptyState body={t('analytics.scope.selectRegionPrompt')} />
+            <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
           ) : scopedMapPoints.isPending ? (
             <LoadingState label={t('data.loading')} />
           ) : scopedMapPoints.isError ? (
@@ -632,6 +671,8 @@ export function AnalyticsRoute() {
                 .map((row) => ({ area: row.area, value: row.highRisk }))
                 .toSorted((a, b) => b.value - a.value)
                 .slice(0, AREA_TOP_N)}
+              shareBase={areaRows.reduce((sum, row) => sum + row.highRisk, 0)}
+              barClass="bg-risk-high/80"
               onSelectArea={level === 'ward' ? undefined : drillTo}
             />
           )}
@@ -644,9 +685,12 @@ export function AnalyticsRoute() {
               {hasRegion ? ` — ${levelLabel}` : ''}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.impact.body')}</p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.impact.measures') })}
+            </p>
           </div>
           {!hasRegion ? (
-            <EmptyState body={t('analytics.scope.selectRegionPrompt')} />
+            <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
           ) : scopedMapPoints.isPending ? (
             <LoadingState label={t('data.loading')} />
           ) : scopedMapPoints.isError ? (
@@ -657,6 +701,8 @@ export function AnalyticsRoute() {
                 .map((row) => ({ area: row.area, value: row.highImpact }))
                 .toSorted((a, b) => b.value - a.value)
                 .slice(0, AREA_TOP_N)}
+              shareBase={areaRows.reduce((sum, row) => sum + row.highImpact, 0)}
+              barClass="bg-impact-high/80"
               onSelectArea={level === 'ward' ? undefined : drillTo}
             />
           )}
@@ -668,9 +714,12 @@ export function AnalyticsRoute() {
               {t('analytics.chart.quadrant.title')}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.quadrant.body')}</p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.quadrant.measures') })}
+            </p>
           </div>
           {!hasRegion ? (
-            <EmptyState body={t('analytics.scope.selectRegionPrompt')} />
+            <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
           ) : scopedMapPoints.isPending ? (
             <LoadingState label={t('data.loading')} />
           ) : scopedMapPoints.isError ? (
@@ -695,9 +744,12 @@ export function AnalyticsRoute() {
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">
               {t('analytics.chart.functionalRisk.body')}
             </p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.functionalRisk.measures') })}
+            </p>
           </div>
           {!hasRegion ? (
-            <EmptyState body={t('analytics.scope.selectRegionPrompt')} />
+            <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
           ) : scopedMapPoints.isPending ? (
             <LoadingState label={t('data.loading')} />
           ) : scopedMapPoints.isError ? (
@@ -708,6 +760,8 @@ export function AnalyticsRoute() {
                 .map((row) => ({ area: row.area, value: row.functionalHighRisk }))
                 .toSorted((a, b) => b.value - a.value)
                 .slice(0, AREA_TOP_N)}
+              shareBase={areaRows.reduce((sum, row) => sum + row.functionalHighRisk, 0)}
+              barClass="bg-risk-high/80"
               onSelectArea={level === 'ward' ? undefined : drillTo}
             />
           )}
@@ -725,9 +779,12 @@ export function AnalyticsRoute() {
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">
               {t('analytics.chart.highImpactNonFunctional.body')}
             </p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.highImpactNonFunctional.measures') })}
+            </p>
           </div>
           {!hasRegion ? (
-            <EmptyState body={t('analytics.scope.selectRegionPrompt')} />
+            <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
           ) : scopedMapPoints.isPending ? (
             <LoadingState label={t('data.loading')} />
           ) : scopedMapPoints.isError ? (
@@ -738,6 +795,8 @@ export function AnalyticsRoute() {
                 .map((row) => ({ area: row.area, value: row.highImpactNonFunctional }))
                 .toSorted((a, b) => b.value - a.value)
                 .slice(0, AREA_TOP_N)}
+              shareBase={areaRows.reduce((sum, row) => sum + row.highImpactNonFunctional, 0)}
+              barClass="bg-impact-high/80"
               onSelectArea={level === 'ward' ? undefined : drillTo}
             />
           )}
@@ -750,6 +809,9 @@ export function AnalyticsRoute() {
               {t('analytics.chart.pathway.title')} — {levelLabel}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.pathway.body')}</p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.pathway.measures') })}
+            </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             {showPreventiveSide ? (
@@ -766,7 +828,11 @@ export function AnalyticsRoute() {
                         count: formatNumber(preventiveAll.data.total),
                       })}
                     </p>
-                    <RankedBarList rows={preventiveAreaRows} emptyBody={t('analytics.priority.empty')} />
+                    <RankedBarList
+                      rows={preventiveAreaRows}
+                      emptyBody={t('analytics.priority.empty')}
+                      shareBase={preventiveAll.data.total}
+                    />
                   </>
                 )}
               </div>
@@ -785,7 +851,11 @@ export function AnalyticsRoute() {
                         count: formatNumber(restorationAll.data.total),
                       })}
                     </p>
-                    <RankedBarList rows={restorationAreaRows} emptyBody={t('analytics.priority.empty')} />
+                    <RankedBarList
+                      rows={restorationAreaRows}
+                      emptyBody={t('analytics.priority.empty')}
+                      shareBase={restorationAll.data.total}
+                    />
                   </>
                 )}
               </div>
@@ -801,34 +871,32 @@ export function AnalyticsRoute() {
                 {t('analytics.chart.ranking.title')} — {levelLabel}
               </h2>
               <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.ranking.body')}</p>
+            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
+              {t('analytics.measures', { text: t('analytics.chart.ranking.measures') })}
+            </p>
             </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="analytics-ranking-metric" className="text-mg-caption font-medium text-muted-foreground">
-                {t('analytics.ranking.metric.label')}
-              </Label>
-              <select
-                id="analytics-ranking-metric"
-                value={rankingMetric}
-                onChange={(event) => setRankingMetric(event.target.value as AreaMetricKey)}
-                className="h-9 min-w-[14rem] rounded-sm border border-input bg-background px-2.5 text-mg-body-sm text-foreground"
-              >
-                {RANKING_METRICS.map((metric) => {
-                  const disabled = !hasRegion && !NATIONAL_SAFE_METRICS.has(metric)
-                  return (
-                    <option key={metric} value={metric} disabled={disabled}>
-                      {t(METRIC_LABEL_KEY[metric])}
-                      {disabled ? ` (${t('analytics.ranking.needsRegion')})` : ''}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
+            <FilterSelect
+              className="w-full sm:w-72"
+              label={t('analytics.ranking.metric.label')}
+              value={rankingMetric}
+              onChange={(value) => {
+                setRankingMetric(value as AreaMetricKey)
+              }}
+              options={RANKING_METRICS.map((metric) => {
+                const disabled = !hasRegion && !NATIONAL_SAFE_METRICS.has(metric)
+                return {
+                  value: metric,
+                  label: `${t(METRIC_LABEL_KEY[metric])}${disabled ? ` (${t('analytics.ranking.needsRegion')})` : ''}`,
+                  disabled,
+                }
+              })}
+            />
           </div>
           <h3 className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
             {t('analytics.ranking.heading', { metric: t(METRIC_LABEL_KEY[rankingMetric]) })}
           </h3>
           {!rankingAvailable ? (
-            <EmptyState body={t('analytics.scope.selectRegionPrompt')} />
+            <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
           ) : rankingPending ? (
             <LoadingState label={t('data.loading')} />
           ) : (

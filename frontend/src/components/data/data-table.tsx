@@ -40,7 +40,7 @@ export function DataTable({ caption, columns, children }: DataTableProps) {
                 key={column.label}
                 scope="col"
                 className={cn(
-                  'px-4 py-2.5 text-start text-mg-label font-semibold text-muted-foreground',
+                  'px-4 py-2 text-start text-mg-label font-semibold text-muted-foreground',
                   column.className,
                 )}
               >
@@ -86,5 +86,5 @@ export function DataCell({
   children: ReactNode
   className?: string
 }) {
-  return <td className={cn('px-4 py-2.5 text-mg-body-sm text-foreground', className)}>{children}</td>
+  return <td className={cn('px-4 py-2 text-mg-body-sm text-foreground', className)}>{children}</td>
 }

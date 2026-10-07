@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Minus, Plus, RotateCcw, X } from 'lucide-react'
+import { Minus, Plus, RotateCcw } from 'lucide-react'
 import { divIcon } from 'leaflet'
 import type { LatLngBounds, LatLngBoundsExpression, Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -16,7 +16,6 @@ import { Link } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
 import { useTheme } from '@/app/providers/theme-provider'
-import { ObservedStatusChip } from '@/components/data/observed-status'
 import { formatNumber } from '@/components/data/format'
 import { AdminBoundaryLayer } from '@/components/map/admin-boundary-layer'
 import { MapLayerSwitcher } from '@/components/map/map-layer-switcher'
@@ -269,10 +268,6 @@ type WaterPointMapProps = {
   onSelectRegion?: (region: string) => void
   onSelectDistrict?: (region: string, district: string) => void
   onSelectWard?: (region: string, district: string, ward: string) => void
-  /** True while `points` is a partial, still-growing page of the complete
-   * filtered estate - an honest, non-blocking note, never a spinner over
-   * the map itself (which is already interactive with what has arrived). */
-  isLoadingMore?: boolean
   className?: string
 }
 
@@ -299,7 +294,6 @@ export function WaterPointMap({
   onSelectRegion,
   onSelectDistrict,
   onSelectWard,
-  isLoadingMore = false,
   className,
 }: WaterPointMapProps) {
   const { t } = useI18n()
@@ -363,11 +357,11 @@ export function WaterPointMap({
   return (
     <figure
       className={cn(
-        'flex flex-col overflow-hidden rounded-md border border-border-strong bg-card',
+        'flex h-[32rem] min-h-0 flex-col overflow-hidden rounded-panel border border-border-strong bg-card',
         className,
       )}
     >
-      <div className="relative h-[28rem] bg-map-surface sm:h-[34rem] lg:h-[42rem] xl:h-[44rem]">
+      <div className="relative isolate z-0 min-h-0 flex-1 bg-map-surface">
         <div className="mg-leaflet absolute inset-0">
           <MapContainer
             center={INITIAL_CENTER}
@@ -445,23 +439,17 @@ export function WaterPointMap({
           </MapContainer>
         </div>
 
-        {/* Top-left: live estate count, layer switcher and the layer legend. */}
-        <div className="absolute top-3 left-3 z-[500] flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-1.5">
-          <p
-            aria-live="polite"
-            className="rounded-sm border border-map-overlay-border bg-map-overlay px-2.5 py-1.5 text-mg-caption text-foreground shadow-mg-1"
-          >
-            <span className="mg-figure font-semibold">{formatNumber(total)}</span>{' '}
-            {t('map.live')}
-            {isLoadingMore ? <span className="text-muted-foreground"> · {t('map.loadingMore')}</span> : null}
-          </p>
+        {/* Top-left: the grouped layer panel. */}
+        <div className="absolute top-3 left-3 z-[500]">
           <MapLayerSwitcher layer={layer} onLayerChange={onLayerChange} points={points} />
-          <div className="rounded-sm border border-map-overlay-border bg-map-overlay px-2.5 py-2 shadow-mg-1">
-            <MapLegend layer={layer} />
-          </div>
         </div>
 
-        {/* Top-right: zoom controls and, when a point is selected, its context chip. */}
+        {/* Bottom-right: the collapsible legend, above the attribution. */}
+        <div className="absolute right-3 bottom-8 z-[500]">
+          <MapLegend layer={layer} />
+        </div>
+
+        {/* Top-right: zoom controls. */}
         <div className="absolute top-3 right-3 z-[500] flex flex-col items-end gap-1.5">
           <div className="flex flex-col gap-1.5">
             <button
@@ -471,7 +459,7 @@ export function WaterPointMap({
               }}
               disabled={view.zoom <= MIN_ZOOM}
               aria-label={t('map.zoomOut')}
-              className="flex size-9 items-center justify-center rounded-sm border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-1 mg-transition hover:bg-accent disabled:cursor-default disabled:opacity-40"
+              className="flex size-10 items-center justify-center rounded-control border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-2 mg-transition pointer-coarse:size-11 hover:bg-accent disabled:cursor-default disabled:opacity-40"
             >
               <Minus aria-hidden="true" className="size-4" />
             </button>
@@ -482,7 +470,7 @@ export function WaterPointMap({
               }}
               disabled={view.zoom >= MAX_ZOOM}
               aria-label={t('map.zoomIn')}
-              className="flex size-9 items-center justify-center rounded-sm border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-1 mg-transition hover:bg-accent disabled:cursor-default disabled:opacity-40"
+              className="flex size-10 items-center justify-center rounded-control border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-2 mg-transition pointer-coarse:size-11 hover:bg-accent disabled:cursor-default disabled:opacity-40"
             >
               <Plus aria-hidden="true" className="size-4" />
             </button>
@@ -492,30 +480,12 @@ export function WaterPointMap({
                 mapRef.current?.fitBounds(COUNTRY_BOUNDS, { padding: [16, 16] })
               }}
               aria-label={t('map.resetView')}
-              className="flex size-9 items-center justify-center rounded-sm border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-1 mg-transition hover:bg-accent"
+              className="flex size-10 items-center justify-center rounded-control border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-2 mg-transition pointer-coarse:size-11 hover:bg-accent"
             >
               <RotateCcw aria-hidden="true" className="size-4" />
             </button>
           </div>
 
-          {selected !== null && (
-            <div className="flex items-center gap-2 rounded-sm border border-map-overlay-border bg-map-overlay px-2.5 py-1.5 shadow-mg-2">
-              <span className="mg-figure text-mg-caption font-semibold text-foreground">
-                {selected.master_id}
-              </span>
-              <ObservedStatusChip value={selected.observed_status} />
-              <button
-                type="button"
-                onClick={() => {
-                  onSelect(null)
-                }}
-                aria-label={t('map.selected.close')}
-                className="-me-1 flex size-7 items-center justify-center rounded-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <X aria-hidden="true" className="size-3.5" />
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

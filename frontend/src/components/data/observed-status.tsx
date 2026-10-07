@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-react'
 
 import { useI18n } from '@/app/providers/locale-provider'
+import { observedStatusLabel } from '@/lib/status-labels'
 import { statusTone, type StatusTone } from '@/lib/status-tone'
 
 type IconComponent = ComponentType<{ className?: string }>
@@ -53,14 +54,14 @@ export function ObservedStatusChip({ value }: { value: string | null }) {
         className={`inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-mg-caption font-medium ${className}`}
       >
         <Icon aria-hidden="true" className="size-3 shrink-0" />
-        {value}
+        {observedStatusLabel(value, t)}
       </span>
     )
   }
 
   return (
     <span className="inline-flex items-center rounded-sm border border-border bg-muted px-2 py-0.5 text-mg-caption text-foreground">
-      {value}
+      {observedStatusLabel(value, t)}
     </span>
   )
 }

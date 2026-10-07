@@ -63,8 +63,8 @@ export const brandAssets: Record<BrandSlotId, BrandAsset> = {
     labelKey: 'brand.majiGuardMark',
     status: 'approved',
     src: majiGuardMarkSrc,
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     candidates: ['src/assets/brand/majiguard-mark.jpg'],
   },
 }

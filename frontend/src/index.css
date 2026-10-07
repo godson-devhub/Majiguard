@@ -138,6 +138,18 @@
     --input: var(--mg-n-500);
     --ring: var(--mg-blue-700);
 
+    /* MajiGuard institutional blue as a named role (Phase 1). Structural
+       accent only: wordmark, links, active state, primary action. It is an
+       alias of the existing blue scale, never a new colour, and is kept
+       separate from the risk (hazard) and impact (teal) scales. */
+    --brand: var(--mg-blue-700);
+    --brand-foreground: var(--mg-n-0);
+    /* Tanzania flag-colour strip (header). The black band lifts to a slate in
+       dark mode, where pure black would vanish into the dark header surface. */
+    --flag-black: var(--mg-n-900);
+    /* calm inset surface for table headers, inset panels, quiet fills */
+    --surface-subtle: var(--mg-n-50);
+
     /* status scale: solid, soft chip surface, text/icon on that chip */
     --status-functional: var(--mg-green-600);
     --status-functional-soft: var(--mg-green-100);
@@ -184,34 +196,22 @@
     --chart-4: var(--mg-amber-700);
     --chart-5: var(--mg-n-600);
 
-    /* sidebar (step 9.3) — institutional light-blue surface. */
-    --sidebar: var(--mg-blue-50);
+    /* sidebar — restrained neutral surface; brand blue appears only on the active item. */
+    --sidebar: var(--mg-n-50);
     --sidebar-foreground: var(--mg-n-800);
     --sidebar-primary: var(--mg-blue-700);
     --sidebar-primary-foreground: var(--mg-n-0);
     --sidebar-accent: var(--mg-blue-100);
     --sidebar-accent-foreground: var(--mg-blue-800);
-    --sidebar-border: var(--mg-blue-200);
+    --sidebar-border: var(--mg-n-200);
     --sidebar-ring: var(--mg-blue-700);
 
-    /* header (Phase 4A.1) — the strongest institutional blue surface in the
-       shell; deliberately deeper than the sidebar tint so the shell reads as
-       a tonal ladder (header > active-nav/primary accent > sidebar tint >
-       footer) rather than one flat blue block. Light-on-dark pairing, used
-       by `.mg-header-surface` below to re-point the shared text/border
-       tokens for the header's children (ProductIdentity, IdentitySlot,
-       ThemeToggle/LocaleSwitch labels) without editing those components. */
-    --header: var(--mg-blue-800);
-    --header-foreground: var(--mg-n-0);
-    --header-muted-foreground: var(--mg-blue-100);
-    --header-border: var(--mg-blue-900);
-    --header-border-strong: color-mix(in srgb, var(--mg-n-0) 45%, transparent);
 
     /* footer (Phase 4A.1) — the most restrained surface: near-neutral, only
        a blue-family border ties it back to the same shell. */
     --footer: var(--mg-n-50);
     --footer-foreground: var(--mg-n-600);
-    --footer-border: var(--mg-blue-200);
+    --footer-border: var(--mg-n-200);
 
     /* map chrome (step 9.5) */
     --map-surface: var(--mg-n-0);
@@ -251,6 +251,11 @@
     --border-strong: #5a6e8a;
     --input: #5a6e8a;
     --ring: var(--mg-blue-300);
+
+    --brand: var(--mg-blue-300);
+    --brand-foreground: #0a1626;
+    --flag-black: var(--mg-n-700);
+    --surface-subtle: #16243a;
 
     --status-functional: var(--mg-green-400);
     --status-functional-soft: var(--mg-tint-functional);
@@ -303,14 +308,6 @@
     --sidebar-border: #22344c;
     --sidebar-ring: var(--mg-blue-300);
 
-    /* header — a touch more saturated than the sidebar's desaturated navy,
-       so it still reads as the strongest surface even in dark mode (never a
-       naive inversion of the light-mode value). */
-    --header: var(--mg-blue-900);
-    --header-foreground: #e8eef7;
-    --header-muted-foreground: var(--mg-blue-200);
-    --header-border: #0a1626;
-    --header-border-strong: color-mix(in srgb, #e8eef7 35%, transparent);
 
     --footer: var(--mg-n-950);
     --footer-foreground: #a9b8cc;
@@ -321,22 +318,6 @@
     --map-overlay-border: #2c3f5a;
     --map-marker-stroke: #e8eef7;
     --map-attribution-foreground: #a9b8cc;
-}
-
-/* --------------------------------------------------------------------------
-   Header surface scope (Phase 4A.1) — re-points the shared text/border
-   tokens for everything rendered inside the header, the same technique
-   `.dark` already uses for the whole app. This lets ProductIdentity,
-   IdentitySlot's placeholder frame, and the ThemeToggle/LocaleSwitch labels
-   stay legible on the header's dark blue surface without any component
-   edit. `--background`/`--input`/`--primary`/`--ring` are deliberately left
-   alone, so Switch/Select controls keep their normal light appearance
-   rather than inheriting a dark, hard-to-theme control surface.
-   -------------------------------------------------------------------------- */
-.mg-header-surface {
-    --foreground: var(--header-foreground);
-    --muted-foreground: var(--header-muted-foreground);
-    --border-strong: var(--header-border-strong);
 }
 
 /* --------------------------------------------------------------------------
@@ -352,16 +333,25 @@
     --radius-2xl: 1rem;
     --radius-3xl: 1.25rem;
     --radius-4xl: 1.5rem;
+    /* Approved restrained geometry (DESIGN.md): 4px controls, 6px panels.
+       Shared primitives use these roles; the raw scale above stays available
+       for components that need a different radius for functional reasons
+       (e.g. pill chips use --radius-4xl). */
+    --radius-control: 0.25rem;
+    --radius-panel: 0.375rem;
 
     --focus-ring-width: 2px;
     --focus-ring-offset: 2px;
 
-    --control-height: 2rem;
-    --control-height-sm: 1.75rem;
+    /* Control sizing: 40px default, 32px compact, 44px comfortable/touch.
+       Coarse-pointer devices (touch) raise default and compact to 44px below. */
+    --control-height: 2.5rem;
+    --control-height-sm: 2rem;
+    --control-height-lg: 2.75rem;
     --target-size-min: 1.5rem;
     --target-size-comfortable: 2.75rem;
     --table-row-height: 2.5rem;
-    --header-height: 4.5rem;
+    --header-height: 4rem;
     --content-max-width: 90rem;
     --scroll-padding-header: 5rem;
 
@@ -371,16 +361,27 @@
     --ease-standard: cubic-bezier(0.2, 0, 0, 1);
     --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
 
+    /* Borders carry structure; shadows are only for UI that genuinely floats
+       (menus, popovers, dialogs, map overlays). mg-1 is a barely-there lift
+       and no longer a decorative card shadow. */
     --shadow-mg-0: none;
-    --shadow-mg-1: 0 1px 2px 0 rgb(19 26 36 / 0.06);
+    --shadow-mg-1: 0 1px 1px 0 rgb(19 26 36 / 0.04);
     --shadow-mg-2: 0 2px 6px -1px rgb(19 26 36 / 0.1);
     --shadow-mg-3: 0 12px 28px -12px rgb(19 26 36 / 0.22);
 }
 
 .dark {
-    --shadow-mg-1: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+    --shadow-mg-1: 0 1px 1px 0 rgb(0 0 0 / 0.4);
     --shadow-mg-2: 0 2px 8px -1px rgb(0 0 0 / 0.6);
     --shadow-mg-3: 0 16px 36px -16px rgb(0 0 0 / 0.75);
+}
+
+/* Touch: default and compact controls grow to the 44px comfortable target. */
+@media (pointer: coarse) {
+    :root {
+        --control-height: 2.75rem;
+        --control-height-sm: 2.75rem;
+    }
 }
 
 /* --------------------------------------------------------------------------
@@ -391,6 +392,10 @@
 .mg-leaflet .leaflet-container {
     background: var(--map-surface);
     font-family: var(--font-sans);
+}
+
+.dark .mg-leaflet .leaflet-tile-pane {
+    filter: brightness(0.72) contrast(0.95) saturate(0.85);
 }
 
 .mg-leaflet .leaflet-control-attribution {
@@ -416,19 +421,24 @@
     height: 11px;
     border-radius: 9999px;
     background: var(--primary);
-    border: 1.5px solid var(--map-surface);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--map-marker-stroke) 35%, transparent);
+    /* The basemap is a light raster in both themes, so the halo is fixed light
+       with a thin dark outline: legible over roads, labels and water alike. */
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 0 0 1px rgb(19 26 36 / 0.5);
 }
 
+/* Clusters only say "N points here": a neutral slate disc with a white count,
+   never a hazard or brand colour that could be read as a risk level. */
 .mg-cluster {
     display: grid;
     place-items: center;
     width: 100%;
     height: 100%;
     border-radius: 9999px;
-    background: color-mix(in srgb, var(--primary) 16%, var(--map-surface));
-    border: 1px solid color-mix(in srgb, var(--primary) 50%, var(--map-surface));
-    color: var(--accent-foreground);
+    background: var(--mg-n-700);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px rgb(19 26 36 / 0.45);
+    color: #ffffff;
     font-size: var(--text-mg-caption);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -440,14 +450,27 @@
    by the map, because a continuous stored score is displayed as a continuous
    ramp. The base classes stay neutral (brand blue) exactly as before.
    -------------------------------------------------------------------------- */
+/* Condition is carried by colour AND shape: functional = circle,
+   non-functional = square, needs attention = diamond, other = circle. */
 .mg-water-marker--functional { background: var(--status-functional); }
-.mg-water-marker--nonfunctional { background: var(--status-nonfunctional); }
-.mg-water-marker--warning { background: var(--status-warning); }
+.mg-water-marker--nonfunctional {
+    background: var(--status-nonfunctional);
+    border-radius: 2px;
+}
+.mg-water-marker--warning {
+    background: var(--status-warning);
+    border-radius: 2px;
+    transform: rotate(45deg) scale(0.9);
+}
 .mg-water-marker--info { background: var(--status-info); }
 .mg-water-marker--neutral { background: color-mix(in srgb, var(--mg-n-500) 80%, var(--mg-n-700)); }
 
 .mg-water-marker--ramp {
     background: var(--mg-marker-color, var(--primary));
+}
+
+.mg-water-marker--warning.mg-water-marker--selected {
+    transform: rotate(45deg) scale(1.3);
 }
 
 .mg-water-marker--selected {
@@ -507,6 +530,9 @@
     --color-border-strong: var(--border-strong);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-surface-subtle: var(--surface-subtle);
 
     --color-status-functional: var(--status-functional);
     --color-status-functional-soft: var(--status-functional-soft);
@@ -559,10 +585,6 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 
-    --color-header: var(--header);
-    --color-header-foreground: var(--header-foreground);
-    --color-header-border: var(--header-border);
-
     --color-footer: var(--footer);
     --color-footer-foreground: var(--footer-foreground);
     --color-footer-border: var(--footer-border);
@@ -580,6 +602,8 @@
     --radius-2xl: var(--radius-2xl);
     --radius-3xl: var(--radius-3xl);
     --radius-4xl: var(--radius-4xl);
+    --radius-control: var(--radius-control);
+    --radius-panel: var(--radius-panel);
 
     --shadow-mg-0: var(--shadow-mg-0);
     --shadow-mg-1: var(--shadow-mg-1);
@@ -589,10 +613,13 @@
     --ease-mg-standard: var(--ease-standard);
     --ease-mg-entrance: var(--ease-entrance);
 
-    /* type scale — dense-data oriented, no decorative sizes */
-    --text-mg-display: 2.125rem;
-    --text-mg-display--line-height: 2.5rem;
-    --text-mg-display--letter-spacing: -0.02em;
+    /* type scale — dense-data oriented, no decorative sizes. Floor is 12px
+       (--text-mg-caption). Spacing follows Tailwind's 4px `--spacing` base
+       (0.25rem), so every p-/gap-/space- step is already a 4/8px multiple.
+       `display` is the page-title / KPI-figure size (28px). */
+    --text-mg-display: 1.75rem;
+    --text-mg-display--line-height: 2.25rem;
+    --text-mg-display--letter-spacing: -0.01em;
     --text-mg-title-lg: 1.75rem;
     --text-mg-title-lg--line-height: 2.25rem;
     --text-mg-title-lg--letter-spacing: -0.01em;
@@ -665,6 +692,19 @@
     button:not(:disabled),
     [role="button"]:not(:disabled) {
         cursor: pointer;
+    }
+
+    /* Data-heavy text: aligned digits in tables and numeric fields. */
+    table,
+    input[type="number"] {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Native single selects have no shared component, so the 40px control
+       height is set here as a floor. min-height beats the page-level `h-9`
+       utilities without editing those pages. */
+    select:not([multiple]):not([size]) {
+        min-height: var(--control-height);
     }
 
     /* One guaranteed visible focus indicator for every interactive element,

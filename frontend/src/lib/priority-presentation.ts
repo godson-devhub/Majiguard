@@ -12,6 +12,33 @@ import type { PriorityItemOut } from '@/types/api'
 
 export type RiskTone = 'low' | 'moderate' | 'high'
 
+/** The backend's fixed `recommended_action` enum, mapped to translated,
+ * human-readable labels - the raw snake_case value never reaches the UI. An
+ * unmapped value returns `null` so the caller can show it verbatim. */
+const RECOMMENDED_ACTION_KEYS: Record<string, MessageKey> = {
+  preventive_maintenance_assessment: 'priority.action.preventiveMaintenance',
+  priority_restoration_assessment: 'priority.action.restorationAssessment',
+}
+
+/** The backend's fixed, small `why_prioritized` vocabulary (never free text),
+ * mapped to translated labels. An unmapped string returns `null` so the caller
+ * can show it verbatim rather than hide it. */
+const WHY_REASON_KEYS: Record<string, MessageKey> = {
+  'high risk of non-functionality': 'priority.why.highRisk',
+  'observed non-functional': 'priority.why.observedNonFunctional',
+  'high relative community impact': 'priority.why.highImpact',
+  'high population exposure component': 'priority.why.populationExposure',
+  'limited nearby water-point alternatives': 'priority.why.limitedAlternatives',
+}
+
+export function whyReasonLabelKey(reason: string): MessageKey | null {
+  return WHY_REASON_KEYS[reason] ?? null
+}
+
+export function recommendedActionLabelKey(action: string): MessageKey | null {
+  return RECOMMENDED_ACTION_KEYS[action] ?? null
+}
+
 /**
  * The frozen ML methodology's own `risk_band` vocabulary
  * (majiguard_ml/predict.py), mapped onto the three semantic risk tones used

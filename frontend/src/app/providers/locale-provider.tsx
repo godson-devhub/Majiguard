@@ -1,5 +1,6 @@
 import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 
+import { setFormatLocale } from '@/components/data/format'
 import { en, sw, type MessageKey, type MessageValues, type Messages } from '@/i18n/messages'
 
 export type Locale = 'en' | 'sw'
@@ -46,6 +47,8 @@ type LocaleProviderProps = {
 
 export function LocaleProvider({ children }: LocaleProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(readStoredLocale)
+  // Numbers and dates follow the interface language; set before children render.
+  setFormatLocale(locale)
 
   useEffect(() => {
     document.documentElement.lang = locale

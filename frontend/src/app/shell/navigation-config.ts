@@ -24,15 +24,15 @@ export type NavigationItem = {
  * top-level entries here (they remain reachable - see `legacyRouteTitles`
  * below - while their content is relocated in a later phase). Icons are
  * stable module-level references so the list never re-creates them. The list
- * is flat (no `group`) at this size; the grouping mechanism below still works
- * unchanged if a future entry needs one.
+ * is grouped into two workflow sections: Decide (act on priorities) and
+ * Explore (browse the register and analyse patterns).
  */
 export const primaryNavigation: NavigationItem[] = [
-  { path: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
-  { path: '/priority', labelKey: 'nav.priority', icon: ListOrdered },
-  { path: '/water-points', labelKey: 'nav.waterPoints', icon: Droplets },
-  { path: '/decision-map', labelKey: 'nav.decisionMap', icon: Map },
-  { path: '/analytics', labelKey: 'nav.analytics', icon: ChartNoAxesColumn },
+  { path: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard, group: 'nav.group.decide' },
+  { path: '/priority', labelKey: 'nav.priority', icon: ListOrdered, group: 'nav.group.decide' },
+  { path: '/decision-map', labelKey: 'nav.decisionMap', icon: Map, group: 'nav.group.decide' },
+  { path: '/water-points', labelKey: 'nav.waterPoints', icon: Droplets, group: 'nav.group.explore' },
+  { path: '/analytics', labelKey: 'nav.analytics', icon: ChartNoAxesColumn, group: 'nav.group.explore' },
 ]
 
 export const secondaryNavigation: NavigationItem[] = [
@@ -50,7 +50,7 @@ export const ungroupedNavigation: NavigationItem[] = primaryNavigation.filter(
  * only edit needed to place it.
  */
 export const navigationGroups: { labelKey: MessageKey; items: NavigationItem[] }[] = (
-  ['nav.group.monitor', 'nav.group.assess'] as const
+  ['nav.group.decide', 'nav.group.explore'] as const
 )
   .map((labelKey) => ({
     labelKey,

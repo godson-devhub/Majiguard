@@ -30,10 +30,10 @@ export function NavigationLink({ item, compact, onNavigate }: NavigationLinkProp
       to={item.path}
       onClick={onNavigate}
       className={cn(
-        'group relative flex min-h-11 items-center rounded-sm text-mg-body-sm transition-colors',
+        'group relative flex min-h-11 items-center rounded-md text-mg-body-sm transition-colors duration-200',
         compact ? 'justify-center px-2' : 'gap-3 px-3',
         isActive
-          ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+          ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
           : 'text-sidebar-foreground hover:bg-sidebar-accent/50',
         compact && isActive && 'ring-1 ring-sidebar-primary ring-inset',
       )}
