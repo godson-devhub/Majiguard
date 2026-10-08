@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
@@ -5,15 +6,23 @@ import { Pagination, SectionPage } from '@/app/shell/section-page'
 import { DataCell, DataRow, DataTable } from '@/components/data/data-table'
 import { EmptyState, FailureState, LoadingState } from '@/components/data/data-states'
 import { formatPercent, formatScorePercent } from '@/components/data/format'
+import { InspectionDrawer } from '@/components/data/inspection-drawer'
 import { ObservedStatusChip } from '@/components/data/observed-status'
 import { RankBadge } from '@/components/data/rank-badge'
 import { RegisterFilterBar } from '@/components/data/register-filter-bar'
 import { SemanticChip } from '@/components/status/semantic-chip'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { usePageParam } from '@/hooks/use-page-param'
 import { usePreventivePriorityQuery, useRestorationPriorityQuery } from '@/hooks/priority'
 import type { MessageKey } from '@/i18n/messages'
-import { formatLocation, priorityRowAccent, riskBandTone } from '@/lib/priority-presentation'
+import {
+  formatLocation,
+  priorityRowAccent,
+  recommendedActionLabelKey,
+  riskBandTone,
+  whyReasonLabelKey,
+} from '@/lib/priority-presentation'
 import { type RegisterFilters } from '@/lib/register-reference'
 import { cn } from '@/lib/utils'
 import type { PriorityItemOut } from '@/types/api'
@@ -28,23 +37,9 @@ function isPathwayType(value: string | null): value is PathwayType {
   return value === 'preventive' || value === 'restoration'
 }
 
-/** The backend's fixed, small `why_prioritized` vocabulary (never free text),
- * mapped to translated labels. Any string not in this map still renders -
- * verbatim - rather than silently disappearing if the backend's wording ever
- * changes. */
-const WHY_REASON_KEYS: Record<string, MessageKey> = {
-  'high risk of non-functionality': 'priority.why.highRisk',
-  'observed non-functional': 'priority.why.observedNonFunctional',
-  'high relative community impact': 'priority.why.highImpact',
-  'high population exposure component': 'priority.why.populationExposure',
-  'limited nearby water-point alternatives': 'priority.why.limitedAlternatives',
-}
-
-/** The backend's fixed `recommended_action` enum, mapped to translated,
- * human-readable labels - the raw snake_case value never reaches the UI. */
-const RECOMMENDED_ACTION_KEYS: Record<string, MessageKey> = {
-  preventive_maintenance_assessment: 'priority.action.preventiveMaintenance',
-  priority_restoration_assessment: 'priority.action.restorationAssessment',
+const PATHWAY_NOTE_KEYS: Record<PathwayType, MessageKey> = {
+  preventive: 'overview.preventive.description',
+  restoration: 'overview.restoration.description',
 }
 
 function PathwayTabs({
@@ -59,7 +54,7 @@ function PathwayTabs({
     <div
       role="radiogroup"
       aria-label={t('priority.tabs.label')}
-      className="inline-flex overflow-hidden rounded-md border border-border bg-card"
+      className="inline-flex overflow-hidden rounded-control border border-border bg-card"
     >
       {(['preventive', 'restoration'] as const).map((value) => {
         const active = pathway === value
@@ -73,9 +68,9 @@ function PathwayTabs({
               onChange(value)
             }}
             className={cn(
-              'px-4 py-2 text-mg-body-sm font-medium transition-colors',
+              'h-10 px-4 text-mg-body-sm font-medium transition-colors pointer-coarse:h-11',
               active
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-primary font-semibold text-primary-foreground'
                 : 'text-foreground hover:bg-accent',
             )}
           >
@@ -89,13 +84,27 @@ function PathwayTabs({
 
 function WhyPrioritizedCell({ reasons }: { reasons: readonly string[] }) {
   const { t } = useI18n()
+  const reasonLabel = (reason: string) => {
+    const key = whyReasonLabelKey(reason)
+    return key === null ? reason : t(key)
+  }
+  const shown = reasons.slice(0, 1)
+  const extra = reasons.length - shown.length
   return (
-    <div className="flex max-w-[22rem] flex-wrap gap-1">
-      {reasons.map((reason) => (
+    <div className="flex items-center gap-1.5">
+      {shown.map((reason) => (
         <Badge key={reason} variant="outline" className="whitespace-nowrap text-mg-caption">
-          {t(WHY_REASON_KEYS[reason] ?? (reason as MessageKey))}
+          {reasonLabel(reason)}
         </Badge>
       ))}
+      {extra > 0 ? (
+        <span
+          className="inline-flex items-center text-mg-caption text-muted-foreground"
+          title={reasons.slice(1).map((reason) => reasonLabel(reason)).join(', ')}
+        >
+          +{extra}
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -104,7 +113,7 @@ function ConditionCell({ item }: { item: PriorityItemOut }) {
   if (item.priority_type === 'preventive') {
     const tone = riskBandTone(item.risk_band)
     return (
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
         {tone !== null ? <SemanticChip kind="risk" tone={tone} /> : null}
         <span className="mg-figure text-mg-caption text-muted-foreground">
           {formatPercent(item.probability_non_functional)}
@@ -119,6 +128,25 @@ function ConditionCell({ item }: { item: PriorityItemOut }) {
   )
 }
 
+/** The score, as the visual anchor of a row: the stored value as a
+ * percentage-style figure, with a thin bar of the same value. The bar is
+ * decorative; nothing is rescaled or re-ranked. */
+function ScoreCell({ score }: { score: number | null }) {
+  return (
+    <div className="min-w-[4.5rem] space-y-1">
+      <p className="mg-figure text-mg-body font-semibold text-foreground">{formatScorePercent(score)}</p>
+      {score === null ? null : (
+        <div aria-hidden="true" className="h-1 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-brand"
+            style={{ width: `${Math.min(Math.max(score, 0), 1) * 100}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
  * The full Preventive/Restoration worklist - the real Priority destination
  * the Overview's cards and rows already deep-link to. One shared table
@@ -126,12 +154,14 @@ function ConditionCell({ item }: { item: PriorityItemOut }) {
  * impact, priority score, why, action); only the "condition" column's
  * content and the explanatory copy differ per pathway, never the layout.
  * Ranking, score and eligibility are exactly the backend's own
- * `PriorityItemOut` fields - nothing is recomputed or re-ranked here.
+ * `PriorityItemOut` fields - nothing is recomputed or re-ranked here. Each row
+ * opens the water point's details in a drawer.
  */
 export function PriorityRoute() {
   const { t } = useI18n()
   const [searchParams, setSearchParams] = useSearchParams()
   const { page, setPage } = usePageParam()
+  const [selected, setSelected] = useState<PriorityItemOut | null>(null)
 
   const pathway: PathwayType = isPathwayType(searchParams.get('type'))
     ? (searchParams.get('type') as PathwayType)
@@ -149,6 +179,7 @@ export function PriorityRoute() {
     params.set('type', next)
     setSearchParams(params, { replace: true })
     setPage(1)
+    setSelected(null)
   }
 
   function setFilters(next: RegisterFilters) {
@@ -181,8 +212,7 @@ export function PriorityRoute() {
   const restorationQuery = useRestorationPriorityQuery(queryParams)
   const query = pathway === 'preventive' ? preventiveQuery : restorationQuery
 
-  const descriptionKey: MessageKey =
-    pathway === 'preventive' ? 'overview.preventive.description' : 'overview.restoration.description'
+  const descriptionKey: MessageKey = PATHWAY_NOTE_KEYS[pathway]
 
   return (
     <SectionPage
@@ -192,11 +222,12 @@ export function PriorityRoute() {
       sourceNote={t('data.source')}
     >
       <div className="space-y-5">
-        <PathwayTabs pathway={pathway} onChange={setPathway} />
-
-        <p className="max-w-[72ch] text-mg-caption text-muted-foreground">
-          {t('priority.conceptsNote')}
-        </p>
+        <div className="space-y-3">
+          <PathwayTabs pathway={pathway} onChange={setPathway} />
+          <p className="max-w-[72ch] text-mg-body-sm text-muted-foreground">
+            {t('priority.conceptsNote')}
+          </p>
+        </div>
 
         <RegisterFilterBar value={filters} onChange={setFilters} showStatus={false} />
 
@@ -214,15 +245,20 @@ export function PriorityRoute() {
                 { label: t('priority.column.rank') },
                 { label: t('priority.column.waterPoint') },
                 { label: t('priority.column.location'), className: 'hidden sm:table-cell' },
-                { label: t('priority.column.condition') },
-                { label: t('priority.column.impact') },
+                { label: t('priority.column.condition'), className: 'hidden md:table-cell' },
+                { label: t('priority.column.impact'), className: 'hidden lg:table-cell' },
                 { label: t('priority.column.priority') },
-                { label: t('priority.column.why'), className: 'hidden lg:table-cell' },
-                { label: t('priority.column.action'), className: 'hidden md:table-cell' },
+                { label: t('priority.column.why'), className: 'hidden xl:table-cell' },
+                { label: t('priority.column.action'), className: 'hidden 2xl:table-cell' },
+                { label: t('detail.open'), className: 'text-end' },
               ]}
             >
               {query.data.items.map((item) => (
-                <DataRow key={item.water_point_id} className={priorityRowAccent(item)}>
+                <DataRow
+                  key={item.water_point_id}
+                  selected={selected?.water_point_id === item.water_point_id}
+                  className={priorityRowAccent(item)}
+                >
                   <DataCell>
                     <RankBadge rank={item.rank} />
                   </DataCell>
@@ -230,23 +266,38 @@ export function PriorityRoute() {
                   <DataCell className="hidden text-muted-foreground sm:table-cell">
                     {formatLocation(item)}
                   </DataCell>
-                  <DataCell>
+                  <DataCell className="hidden md:table-cell">
                     <ConditionCell item={item} />
                   </DataCell>
-                  <DataCell className="mg-figure">
-                    <div className="flex flex-wrap items-center gap-1.5">
+                  <DataCell className="mg-figure hidden lg:table-cell">
+                    <div className="flex items-center gap-2">
                       <span>{formatPercent(item.impact_score)}</span>
                       {item.impact_high === true ? <SemanticChip kind="impact" tone="high" /> : null}
                     </div>
                   </DataCell>
-                  <DataCell className="mg-figure font-semibold">
-                    {formatScorePercent(item.priority_score)}
+                  <DataCell>
+                    <ScoreCell score={item.priority_score} />
                   </DataCell>
-                  <DataCell className="hidden lg:table-cell">
+                  <DataCell className="hidden xl:table-cell">
                     <WhyPrioritizedCell reasons={item.why_prioritized} />
                   </DataCell>
-                  <DataCell className="hidden text-mg-caption text-muted-foreground md:table-cell">
-                    {t(RECOMMENDED_ACTION_KEYS[item.recommended_action] ?? (item.recommended_action as MessageKey))}
+                  <DataCell className="hidden text-mg-caption text-muted-foreground 2xl:table-cell">
+                    {(() => {
+                      const key = recommendedActionLabelKey(item.recommended_action)
+                      return key === null ? item.recommended_action : t(key)
+                    })()}
+                  </DataCell>
+                  <DataCell className="text-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      aria-label={t('detail.openFor', { masterId: item.master_id })}
+                      onClick={() => {
+                        setSelected(item)
+                      }}
+                    >
+                      {t('detail.open')}
+                    </Button>
                   </DataCell>
                 </DataRow>
               ))}
@@ -262,6 +313,14 @@ export function PriorityRoute() {
           </div>
         )}
       </div>
+
+      <InspectionDrawer
+        id={selected?.water_point_id ?? null}
+        priorityItem={selected}
+        onClose={() => {
+          setSelected(null)
+        }}
+      />
     </SectionPage>
   )
 }

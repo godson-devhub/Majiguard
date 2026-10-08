@@ -1,21 +1,18 @@
-﻿import { Fragment, useId, useState } from 'react'
-import { CircleSlash, Settings } from 'lucide-react'
+import { Fragment, useId, useState } from 'react'
+import { CircleSlash } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
 import { SectionPage, Pagination } from '@/app/shell/section-page'
 import { AssessmentWorkspace } from '@/app/routes/assessment-workspace'
 import { usePageParam } from '@/hooks/use-page-param'
-import { StatePanel } from '@/components/data/state-panel'
+import { InspectionDrawer } from '@/components/data/inspection-drawer'
+import { MasterIdSearch } from '@/components/data/master-id-search'
 import { EmptyState, FailureState, LoadingState } from '@/components/data/data-states'
 import { DataCell, DataRow, DataTable } from '@/components/data/data-table'
 import { WaterPointInspectionPanel } from '@/components/data/water-point-inspection-panel'
 import { RegisterFilterBar } from '@/components/data/register-filter-bar'
-import {
-  formatCoordinatePair,
-  formatDate,
-  formatNumber,
-} from '@/components/data/format'
+import { formatDate, formatNumber } from '@/components/data/format'
 import { ObservedStatusChip } from '@/components/data/observed-status'
 import { SemanticChip } from '@/components/status/semantic-chip'
 import { useMapPointsAll, useWaterPointListQuery } from '@/hooks/water-points'
@@ -59,16 +56,21 @@ export function WaterPointsRoute() {
     nbs_ward: filters.ward,
   })
 
+  function applyFilters(next: RegisterFilters) {
+    setFilters(next)
+    setPage(1)
+  }
+
   return (
     <SectionPage
       titleKey="page.waterPoints.title"
       descriptionKey="page.waterPoints.body"
       eyebrowKey="page.waterPoints.eyebrow"
       sourceNote={t('data.source')}
-      toolbar={<RegisterFilterBar value={filters} onChange={setFilters} />}
+      toolbar={<RegisterFilterBar value={filters} onChange={applyFilters} />}
     >
       <div className="space-y-5">
-        <WaterPointInspectionPanel id={selectedId} />
+        <MasterIdSearch onResolve={setSelectedId} className="max-w-xl" />
 
         {query.isPending ? (
           <LoadingState label={t('data.loading')} />
@@ -83,38 +85,46 @@ export function WaterPointsRoute() {
               columns={[
                 { label: t('data.column.masterId') },
                 { label: t('data.column.wpdxId'), className: 'hidden lg:table-cell' },
-                { label: t('data.column.region') },
+                { label: t('data.column.region'), className: 'hidden sm:table-cell' },
+                { label: t('data.column.district'), className: 'hidden lg:table-cell' },
+                { label: t('data.column.ward'), className: 'hidden xl:table-cell' },
                 { label: t('data.column.observedStatus') },
-                { label: t('data.column.coordinates'), className: 'hidden md:table-cell' },
                 { label: t('data.column.surveyDate'), className: 'hidden xl:table-cell' },
+                { label: t('detail.open'), className: 'text-end' },
               ]}
             >
               {query.data.items.map((point) => (
                 <DataRow key={point.id} selected={point.id === selectedId}>
-                  <DataCell>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedId(point.id)
-                      }}
-                      aria-pressed={point.id === selectedId}
-                      className="mg-figure rounded-xs text-start font-medium text-primary underline-offset-2 hover:underline"
-                    >
-                      {point.master_id}
-                    </button>
-                  </DataCell>
-                  <DataCell className="text-muted-foreground hidden lg:table-cell">
+                  <DataCell className="mg-figure font-medium">{point.master_id}</DataCell>
+                  <DataCell className="mg-figure hidden text-muted-foreground lg:table-cell">
                     {point.wpdx_id}
                   </DataCell>
-                  <DataCell>{point.nbs_region ?? t('data.notRecorded')}</DataCell>
+                  <DataCell className="hidden sm:table-cell">
+                    {point.nbs_region ?? t('data.notRecorded')}
+                  </DataCell>
+                  <DataCell className="hidden text-muted-foreground lg:table-cell">
+                    {point.nbs_district ?? t('data.notRecorded')}
+                  </DataCell>
+                  <DataCell className="hidden text-muted-foreground xl:table-cell">
+                    {point.nbs_ward ?? t('data.notRecorded')}
+                  </DataCell>
                   <DataCell>
                     <ObservedStatusChip value={point.observed_status} />
                   </DataCell>
-                  <DataCell className="mg-figure text-muted-foreground hidden md:table-cell">
-                    {formatCoordinatePair(point.latitude, point.longitude)}
-                  </DataCell>
-                  <DataCell className="mg-figure text-muted-foreground hidden xl:table-cell">
+                  <DataCell className="mg-figure hidden text-muted-foreground xl:table-cell">
                     {formatDate(point.survey_date)}
+                  </DataCell>
+                  <DataCell className="text-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      aria-label={t('detail.openFor', { masterId: point.master_id })}
+                      onClick={() => {
+                        setSelectedId(point.id)
+                      }}
+                    >
+                      {t('detail.open')}
+                    </Button>
                   </DataCell>
                 </DataRow>
               ))}
@@ -130,6 +140,13 @@ export function WaterPointsRoute() {
           </>
         )}
       </div>
+
+      <InspectionDrawer
+        id={selectedId}
+        onClose={() => {
+          setSelectedId(null)
+        }}
+      />
     </SectionPage>
   )
 }
@@ -400,31 +417,6 @@ export function ImpactRoute() {
   )
 }
 
-/* ------------------------------------------------------------------ *
- * Settings
- * ------------------------------------------------------------------ */
-
-export function SettingsRoute() {
-  const { t } = useI18n()
-
-  return (
-    <SectionPage
-      titleKey="page.settings.title"
-      descriptionKey="page.settings.body"
-      eyebrowKey="page.settings.eyebrow"
-    >
-      <StatePanel
-        icon={Settings}
-        tone="neutral"
-        title={t('page.pending.title')}
-        description={t('page.pending.body')}
-      >
-        <p className="mt-3 text-mg-caption text-muted-foreground">{t('page.pending.note')}</p>
-      </StatePanel>
-    </SectionPage>
-  )
-}
-
 export function NotFoundRoute() {
   const { t } = useI18n()
 
@@ -440,7 +432,7 @@ export function NotFoundRoute() {
       <p className="max-w-[68ch] text-mg-body text-muted-foreground">
         {t('page.notFound.body')}
       </p>
-      <Button render={<Link to="/dashboard" />}>{t('page.notFound.action')}</Button>
+      <Button nativeButton={false} render={<Link to="/dashboard" />}>{t('page.notFound.action')}</Button>
     </div>
   )
 }

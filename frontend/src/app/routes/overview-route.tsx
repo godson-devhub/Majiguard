@@ -21,17 +21,10 @@ import { OverviewSpatialSummary } from '@/components/overview/overview-spatial-s
 import { SemanticChip } from '@/components/status/semantic-chip'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { usePreventivePriorityQuery, useRestorationPriorityQuery } from '@/hooks/priority'
 import { FUNCTIONAL_STATUS, NON_FUNCTIONAL_STATUS, useEstateKpis } from '@/hooks/estate-kpis'
 import type { MessageKey } from '@/i18n/messages'
+import { mapImpactBand } from '@/lib/data-ramps'
 import {
   formatLocation,
   impactRowAccent,
@@ -41,8 +34,8 @@ import {
   scopeLabel,
 } from '@/lib/priority-presentation'
 import type { RegisterFilters } from '@/lib/register-reference'
+import { observedStatusLabel } from '@/lib/status-labels'
 import { cn } from '@/lib/utils'
-import { mapImpactBand } from '@/lib/data-ramps'
 import type { MapPointOut, PriorityPageMeta } from '@/types/api'
 
 /** Both pathways show the same top-8, so the two "Where should we act
@@ -51,6 +44,10 @@ import type { MapPointOut, PriorityPageMeta } from '@/types/api'
  * many of its own top-ranked rows are shown here. */
 const PREVENTIVE_TOP_N = 8
 const RESTORATION_TOP_N = 8
+
+/** One shared row grid for the top lists, so the header row lines up. */
+const LIST_ROW_GRID =
+  'grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-x-3 sm:grid-cols-[1.75rem_6.5rem_minmax(0,1fr)_auto_3.5rem]'
 
 /**
  * One decision pathway's summary: the backend's own scoped total (the
@@ -76,25 +73,36 @@ function DecisionCard({
   const ctaKey: MessageKey = isPreventive ? 'overview.preventive.cta' : 'overview.restoration.cta'
 
   const count = listQuery.isSuccess ? listQuery.data.total : null
-  const highest = listQuery.isSuccess ? listQuery.data.items[0] ?? null : null
-  const highestTone = highest === null ? null : isPreventive ? riskBandTone(highest.risk_band) : mapImpactBand(highest.priority_score ?? 0)
-  const highestAccent = highest === null ? '' : isPreventive ? riskRowAccent(highestTone) : impactRowAccent(highestTone ?? 'low')
+  const highest = listQuery.isSuccess ? (listQuery.data.items[0] ?? null) : null
 
   return (
-    <Card className="flex flex-col gap-0 overflow-hidden rounded-md border border-border py-0 ring-0">
-      <CardHeader className="gap-1.5 border-b border-border bg-muted/40 px-5 py-4">
-        <CardTitle className="text-mg-title-md font-semibold tracking-tight">{t(titleKey)}</CardTitle>
-        <CardDescription className="text-mg-body-sm">{t(descriptionKey)}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 space-y-5 px-5 py-5">
+    <section
+      aria-labelledby={`decision-${variant}-title`}
+      className="flex flex-col rounded-panel border border-border bg-card"
+    >
+      <div className="space-y-1 border-b border-border px-5 py-4">
+        <h3 id={`decision-${variant}-title`} className="text-mg-title-md font-semibold text-foreground">
+          {t(titleKey)}
+        </h3>
+        <p className="text-mg-body-sm text-muted-foreground">{t(descriptionKey)}</p>
+      </div>
+
+      <div className="flex-1 space-y-4 px-5 py-4">
         <div>
-          <p className="mg-figure text-mg-display font-semibold text-foreground">
-            {listQuery.isPending
-              ? t('availability.checking')
-              : listQuery.isError
-                ? t('data.error.title')
-                : formatNumber(count)}
-          </p>
+          {listQuery.isPending ? (
+            <div role="status" aria-live="polite">
+              <span className="sr-only">{t('state.loadingSection')}</span>
+              <div aria-hidden="true" className="h-9 w-24 animate-pulse rounded-control bg-muted" />
+            </div>
+          ) : listQuery.isError ? (
+            <p className="text-mg-title-sm font-semibold text-muted-foreground">
+              {t('state.unavailable')}
+            </p>
+          ) : (
+            <p className="mg-figure text-mg-display font-semibold text-foreground">
+              {formatNumber(count)}
+            </p>
+          )}
           {listQuery.isSuccess && count !== null ? (
             <p className="mt-1 text-mg-caption text-muted-foreground">
               {t(countKey, { count: formatNumber(count) })}
@@ -102,7 +110,7 @@ function DecisionCard({
           ) : null}
         </div>
 
-        <div className={cn('rounded-md border border-border bg-muted/30 p-3.5', highestAccent)}>
+        <div className="rounded-control border border-border bg-surface-subtle p-3">
           <p className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
             {t('overview.highestRanked')}
           </p>
@@ -119,11 +127,11 @@ function DecisionCard({
                 <span className="mg-figure text-mg-body-sm font-semibold text-foreground">
                   {highest.master_id}
                 </span>
-                <span className="text-mg-caption text-muted-foreground">
+                <span className="min-w-0 text-mg-caption text-muted-foreground">
                   {formatLocation(highest)}
                 </span>
                 <span className="ms-auto flex flex-col items-end leading-tight">
-                  <span className="text-[0.625rem] uppercase tracking-wide text-muted-foreground">
+                  <span className="text-mg-caption text-muted-foreground">
                     {t('priority.column.priority')}
                   </span>
                   <span className="mg-figure text-mg-body-sm font-semibold text-foreground">
@@ -134,14 +142,15 @@ function DecisionCard({
             )}
           </div>
         </div>
-      </CardContent>
-      <CardFooter className="border-t border-border bg-muted/20 px-5 py-4">
-        <Button className="w-full sm:w-auto" render={<Link to={priorityHref(variant)} />}>
+      </div>
+
+      <div className="border-t border-border px-5 py-3">
+        <Button className="w-full sm:w-auto" nativeButton={false} render={<Link to={priorityHref(variant)} />}>
           {t(ctaKey)}
-          <ArrowRight aria-hidden="true" className="size-3.5" />
+          <ArrowRight aria-hidden="true" className="size-4" />
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </section>
   )
 }
 
@@ -176,58 +185,81 @@ function TopPriorityList({
       ) : query.data.items.length === 0 ? (
         <EmptyState body={t('overview.list.empty')} />
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card">
-          {query.data.items.map((item) => {
-            const isPreventive = variant === 'preventive'
-            const tone = isPreventive ? riskBandTone(item.risk_band) : mapImpactBand(item.priority_score ?? 0)
-            const accent = isPreventive ? riskRowAccent(tone) : impactRowAccent(tone ?? 'low')
-            return (
-              <li key={item.water_point_id}>
-                <Link
-                  to={priorityHref(variant)}
-                  className={cn(
-                    'flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
-                    accent,
-                  )}
-                >
-                  <RankBadge rank={item.rank} />
-                  <span className="mg-figure w-28 shrink-0 truncate text-mg-body-sm font-medium text-foreground">
-                    {item.master_id}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-mg-caption text-muted-foreground">
-                    {formatLocation(item)}
-                  </span>
-                  {isPreventive ? (
-                    tone !== null ? <SemanticChip kind="risk" tone={tone} /> : null
-                  ) : (
-                    <ObservedStatusChip value={item.observed_status} />
-                  )}
-                  <span className="ms-auto flex shrink-0 flex-col items-end leading-tight">
-                    <span className="text-[0.625rem] uppercase tracking-wide text-muted-foreground">
-                      {t('priority.column.priority')}
+        <div className="overflow-hidden rounded-panel border border-border bg-card">
+          <div
+            aria-hidden="true"
+            className={cn(
+              LIST_ROW_GRID,
+              'border-b border-border bg-surface-subtle px-4 py-2 text-mg-caption font-medium text-muted-foreground',
+            )}
+          >
+            <span>{t('priority.column.rank')}</span>
+            <span className="hidden sm:block">{t('priority.column.waterPoint')}</span>
+            <span>{t('priority.column.location')}</span>
+            <span className="hidden sm:block">{t('priority.column.condition')}</span>
+            <span className="text-end">{t('priority.column.priority')}</span>
+          </div>
+          <ul className="divide-y divide-border">
+            {query.data.items.map((item) => {
+              const isPreventive = variant === 'preventive'
+              const tone = isPreventive
+                ? riskBandTone(item.risk_band)
+                : mapImpactBand(item.priority_score ?? 0)
+              const accent = isPreventive ? riskRowAccent(tone) : impactRowAccent(tone ?? 'low')
+              return (
+                <li key={item.water_point_id}>
+                  <Link
+                    to={priorityHref(variant)}
+                    className={cn(
+                      LIST_ROW_GRID,
+                      'px-4 py-3 outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      accent,
+                    )}
+                  >
+                    <RankBadge rank={item.rank} />
+                    <span className="mg-figure hidden truncate text-mg-body-sm font-medium text-foreground sm:block">
+                      {item.master_id}
                     </span>
-                    <span className="mg-figure text-mg-body-sm font-semibold text-foreground">
+                    <span className="min-w-0 truncate text-mg-caption text-muted-foreground">
+                      <span className="mg-figure font-medium text-foreground sm:hidden">
+                        {item.master_id}
+                      </span>
+                      <span className="sm:hidden"> · </span>
+                      {formatLocation(item)}
+                    </span>
+                    <span className="hidden sm:block">
+                      {isPreventive ? (
+                        riskBandTone(item.risk_band) !== null ? (
+                          <SemanticChip kind="risk" tone={riskBandTone(item.risk_band) ?? 'low'} />
+                        ) : null
+                      ) : (
+                        <ObservedStatusChip value={item.observed_status} />
+                      )}
+                    </span>
+                    <span className="mg-figure text-end text-mg-body-sm font-semibold text-foreground">
                       {formatScorePercent(item.priority_score)}
                     </span>
-                  </span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </section>
   )
 }
 
 /**
- * The decision-first Overview, now restored with the estate-condition KPI
- * row and a global Region/District/Ward filter that scopes every section on
- * the page - KPIs, both priority rankings, and the spatial summary. Every
- * number is read from the backend (`/water-points`, `/priority/*`) or
+ * The decision-first Overview. Reading order: scope, then "where should we
+ * act first?", then the estate-condition figures, then the ranked lists, then
+ * the spatial summary. A global Region/District/Ward filter scopes every
+ * section on the page - KPIs, both priority rankings, and the spatial summary.
+ * Every number is read from the backend (`/water-points`, `/priority/*`) or
  * derived by counting an already-stored field across already-fetched rows
  * (the same pattern this codebase already uses for "high risk" counts) -
- * nothing is computed, ranked, banded, or invented here.
+ * nothing is computed, ranked, banded, or invented here, and the two priority
+ * pathways are never combined.
  */
 export function OverviewRoute() {
   const { t } = useI18n()
@@ -294,9 +326,11 @@ export function OverviewRoute() {
   // --- Spatial summary: the same scoped/sample fetch used for KPI 3 above,
   // so selecting a location never triggers a second map fetch.
   const spatialPoints: readonly MapPointOut[] = hasLocationFilter
-    ? scopedMapPoints.data?.items ?? []
-    : sampleMapPoints.data?.items ?? []
-  const spatialTotal = hasLocationFilter ? scopedMapPoints.data?.total ?? 0 : sampleMapPoints.data?.total ?? 0
+    ? (scopedMapPoints.data?.items ?? [])
+    : (sampleMapPoints.data?.items ?? [])
+  const spatialTotal = hasLocationFilter
+    ? (scopedMapPoints.data?.total ?? 0)
+    : (sampleMapPoints.data?.total ?? 0)
   const spatialPending = hasLocationFilter ? scopedMapPoints.isPending : sampleMapPoints.isPending
   const spatialIsError = hasLocationFilter ? scopedMapPoints.isError : sampleMapPoints.isError
   const spatialError = hasLocationFilter ? scopedMapPoints.error : sampleMapPoints.error
@@ -304,7 +338,16 @@ export function OverviewRoute() {
     ? () => void scopedMapPoints.refetch()
     : () => void sampleMapPoints.refetch()
 
-  const totalHint = filters.region === null ? t('dashboard.kpi.totalHint') : t('dashboard.kpi.totalFiltered', { region: filters.region })
+  const totalHint =
+    filters.region === null
+      ? t('dashboard.kpi.totalHint')
+      : t('dashboard.kpi.totalFiltered', { region: filters.region })
+
+  const highImpactHint = t('overview.kpi.highImpactHint', {
+    threshold: nationalSummary.isSuccess
+      ? formatScorePercent(nationalSummary.data.impact_high_threshold)
+      : '—',
+  })
 
   return (
     <SectionPage
@@ -314,6 +357,7 @@ export function OverviewRoute() {
       sourceNote={t('data.source')}
     >
       <div className="space-y-10">
+        {/* 1. Scope */}
         <section aria-labelledby="overview-filters-heading" className="space-y-2.5">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h2
@@ -322,13 +366,31 @@ export function OverviewRoute() {
             >
               {t('overview.filters.label')}
             </h2>
-            <Badge variant="outline" className="mg-figure border-sidebar-border bg-sidebar text-sidebar-accent-foreground">
+            <Badge variant="outline" className="mg-figure">
               {scopeLabel(filters, t)}
             </Badge>
           </div>
           <RegisterFilterBar value={filters} onChange={setFilters} showStatus={false} />
         </section>
 
+        {/* 2. Where should we act first? - the two pathways, never combined */}
+        <section aria-labelledby="decision-heading" className="space-y-4">
+          <div className="max-w-[72ch] space-y-1">
+            <h2 id="decision-heading" className="text-mg-title-lg font-semibold text-foreground">
+              {t('overview.decision.heading')}
+            </h2>
+            <p className="text-mg-body-sm text-muted-foreground">
+              {t('overview.decision.subheading')}
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <DecisionCard variant="preventive" listQuery={preventive} />
+            <DecisionCard variant="restoration" listQuery={restoration} />
+          </div>
+        </section>
+
+        {/* 3. Estate condition */}
+        <div className="space-y-6">
         <section aria-labelledby="kpi-functional-heading" className="space-y-3">
           <h2
             id="kpi-functional-heading"
@@ -336,57 +398,37 @@ export function OverviewRoute() {
           >
             {t('overview.kpi.sectionFunctional')}
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard
               label={t('dashboard.kpi.total')}
               icon={Droplets}
-              value={
-                totals.isPending
-                  ? t('availability.checking')
-                  : totals.isError
-                    ? t('data.error.title')
-                    : formatNumber(totals.data.total)
-              }
+              state={totals.isPending ? 'loading' : totals.isError ? 'error' : 'ready'}
+              value={totals.isSuccess ? formatNumber(totals.data.total) : ''}
               hint={totalHint}
             />
             <KpiCard
-              label={FUNCTIONAL_STATUS}
+              label={observedStatusLabel(FUNCTIONAL_STATUS, t)}
               icon={CircleCheck}
               tone="functional"
-              value={statusPending ? t('availability.checking') : formatNumber(functionalCount)}
+              state={statusPending ? 'loading' : 'ready'}
+              value={formatNumber(functionalCount)}
               hint={t('dashboard.kpi.functionalHint')}
             />
             <KpiCard
               label={t('overview.kpi.functionalHighRisk')}
               icon={TriangleAlert}
               tone="warning"
-              value={
-                functionalHighRiskPending
-                  ? t('availability.checking')
-                  : functionalHighRiskError
-                    ? t('data.error.title')
-                    : formatNumber(functionalHighRiskCount)
-              }
+              state={functionalHighRiskPending ? 'loading' : functionalHighRiskError ? 'error' : 'ready'}
+              value={formatNumber(functionalHighRiskCount)}
               hint={t('overview.kpi.functionalHighRiskHint')}
             />
             <KpiCard
               label={t('overview.kpi.highImpact')}
               icon={Waves}
               tone="info"
-              value={
-                highImpactPending
-                  ? t('availability.checking')
-                  : highImpactError
-                    ? t('data.error.title')
-                    : formatNumber(highImpactCount)
-              }
-              hint={
-                nationalSummary.isSuccess
-                  ? t('overview.kpi.highImpactHint', {
-                      threshold: formatScorePercent(nationalSummary.data.impact_high_threshold),
-                    })
-                  : t('overview.kpi.highImpactHint', { threshold: '—' })
-              }
+              state={highImpactPending ? 'loading' : highImpactError ? 'error' : 'ready'}
+              value={formatNumber(highImpactCount)}
+              hint={highImpactHint}
             />
           </div>
         </section>
@@ -398,60 +440,42 @@ export function OverviewRoute() {
           >
             {t('overview.kpi.sectionNonFunctional')}
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <KpiCard
-              label={NON_FUNCTIONAL_STATUS}
+              label={observedStatusLabel(NON_FUNCTIONAL_STATUS, t)}
               icon={CircleSlash}
               tone="nonfunctional"
-              value={statusPending ? t('availability.checking') : formatNumber(nonFunctionalCount)}
+              state={statusPending ? 'loading' : 'ready'}
+              value={formatNumber(nonFunctionalCount)}
               hint={t('dashboard.kpi.nonFunctionalHint')}
             />
             <KpiCard
               label={t('overview.kpi.highImpactNonFunctional')}
               icon={Waves}
               tone="info"
-              value={
-                highImpactPending
-                  ? t('availability.checking')
-                  : highImpactError
-                    ? t('data.error.title')
-                    : formatNumber(highImpactNonFunctionalCount)
-              }
+              state={highImpactPending ? 'loading' : highImpactError ? 'error' : 'ready'}
+              value={formatNumber(highImpactNonFunctionalCount)}
               hint={t('overview.kpi.highImpactNonFunctionalHint')}
             />
           </div>
         </section>
+        </div>
 
-        <section aria-labelledby="decision-heading" className="space-y-6">
-          <div className="max-w-[72ch] space-y-1.5 border-t border-border pt-8">
-            <h2
-              id="decision-heading"
-              className="text-mg-title-lg font-semibold text-foreground"
-            >
-              {t('overview.decision.heading')}
-            </h2>
-            <p className="text-mg-body text-muted-foreground">{t('overview.decision.subheading')}</p>
-          </div>
+        {/* 4 & 5. Top priorities, one list per pathway */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TopPriorityList
+            titleKey="overview.topPreventive.title"
+            variant="preventive"
+            query={preventive}
+          />
+          <TopPriorityList
+            titleKey="overview.topRestoration.title"
+            variant="restoration"
+            query={restoration}
+          />
+        </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <DecisionCard variant="preventive" listQuery={preventive} />
-            <DecisionCard variant="restoration" listQuery={restoration} />
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <TopPriorityList
-              titleKey="overview.topPreventive.title"
-              variant="preventive"
-              query={preventive}
-            />
-            <TopPriorityList
-              titleKey="overview.topRestoration.title"
-              variant="restoration"
-              query={restoration}
-            />
-          </div>
-        </section>
-
+        {/* 6. Spatial summary */}
         <OverviewSpatialSummary
           points={spatialPoints}
           total={spatialTotal}

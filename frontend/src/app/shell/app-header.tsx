@@ -14,9 +14,9 @@ export function AppHeader({ leading }: AppHeaderProps) {
     <InstitutionalHeader
       leading={leading}
       actions={
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <ThemeToggle />
+        <div className="flex items-center gap-x-2 sm:gap-x-3">
           <LocaleSwitch />
+          <ThemeToggle />
         </div>
       }
     />

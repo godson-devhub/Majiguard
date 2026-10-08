@@ -11,6 +11,7 @@ import {
   getWaterPointByMasterId,
   listMapPoints,
   listAdministrativeRegions, listAdministrativeDistricts, listAdministrativeWards,
+  getAdministrativeMetadata,
   listWaterPoints,
   computeWaterPoint,
 } from '@/services/water-points'
@@ -48,6 +49,9 @@ export const waterPointKeys = {
 export function useAdministrativeRegionsQuery() { return useQuery({ queryKey: waterPointKeys.adminRegions(), queryFn: ({ signal }) => listAdministrativeRegions(signal), staleTime: Infinity }) }
 export function useAdministrativeDistrictsQuery(region: string | null) { return useQuery({ queryKey: waterPointKeys.adminDistricts(region ?? ''), queryFn: ({ signal }) => listAdministrativeDistricts(region ?? '', signal), enabled: Boolean(region), staleTime: Infinity }) }
 export function useAdministrativeWardsQuery(region: string | null, district: string | null) { return useQuery({ queryKey: waterPointKeys.adminWards(region ?? '', district ?? ''), queryFn: ({ signal }) => listAdministrativeWards(region ?? '', district ?? '', signal), enabled: Boolean(region && district), staleTime: Infinity }) }
+
+/** Read-only provenance of the administrative boundaries (source and version). */
+export function useAdministrativeMetadataQuery() { return useQuery({ queryKey: [...waterPointKeys.all, 'admin-metadata'] as const, queryFn: ({ signal }) => getAdministrativeMetadata(signal), staleTime: Infinity }) }
 
 export function waterPointListQueryOptions(params: WaterPointListParams = {}) {
   return queryOptions({

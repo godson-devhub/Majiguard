@@ -107,3 +107,50 @@ export function useRestorationPriorityQuery(params: PriorityListParams = {}) {
 export function usePrioritySummaryQuery() {
   return useQuery(prioritySummaryQueryOptions())
 }
+
+type PointPriorityLookup = {
+  waterPointId: number | null
+  pathway: 'preventive' | 'restoration' | null
+  region: string | null
+  district: string | null
+  ward: string | null
+  enabled: boolean
+}
+
+/**
+ * Finds one water point's ranked Priority item through the existing list
+ * endpoints, narrowed to its own ward (or district / region when those are
+ * missing) so the answer is a handful of rows. The item - and with it the
+ * national rank, score, reasons and recommended action - is exactly what the
+ * Priority page shows; nothing is recomputed. Used by the Decision Map, which
+ * otherwise only has the map record, so both entry points explain a point from
+ * the same backend item.
+ */
+export function usePointPriorityItem({
+  waterPointId,
+  pathway,
+  region,
+  district,
+  ward,
+  enabled,
+}: PointPriorityLookup) {
+  const scope: PriorityListParams | null =
+    ward !== null && district !== null && region !== null
+      ? { nbs_region: region, nbs_district: district, nbs_ward: ward }
+      : district !== null && region !== null
+        ? { nbs_region: region, nbs_district: district }
+        : region !== null
+          ? { nbs_region: region }
+          : null
+  const params: PriorityListParams = { ...scope, page: 1, page_size: 500 }
+  const isRestoration = pathway === 'restoration'
+  const query = useQuery({
+    queryKey: isRestoration ? priorityKeys.restoration(params) : priorityKeys.preventive(params),
+    queryFn: ({ signal }) =>
+      isRestoration ? listRestorationPriority(params, signal) : listPreventivePriority(params, signal),
+    enabled: enabled && waterPointId !== null && pathway !== null && scope !== null,
+    staleTime: 5 * 60 * 1000,
+  })
+  const item = query.data?.items.find((candidate) => candidate.water_point_id === waterPointId) ?? null
+  return { item, isPending: query.isPending && query.fetchStatus !== 'idle', isError: query.isError }
+}

@@ -94,7 +94,7 @@ export function OverviewSpatialSummary({
             {t('overview.spatial.description')}
           </p>
         </div>
-        <Button size="sm" variant="outline" render={<Link to="/decision-map" />}>
+        <Button size="sm" variant="outline" nativeButton={false} render={<Link to="/decision-map" />}>
           {t('overview.spatial.cta')}
         </Button>
       </div>

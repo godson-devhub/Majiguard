@@ -5,20 +5,49 @@
 
 const EM_DASH = '—'
 
-const numberFormat = new Intl.NumberFormat('en-TZ', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 4,
-})
+/**
+ * The active interface language, set by LocaleProvider before its children
+ * render, so numbers and dates follow the language switch. Formatters are
+ * cached per language; nothing here changes a value, only how it is written.
+ */
+const FORMAT_LOCALES = { en: 'en-TZ', sw: 'sw-TZ' } as const
+let activeLocale: keyof typeof FORMAT_LOCALES = 'en'
 
-export function formatNumber(value: number | null): string {
-  return value === null ? EM_DASH : numberFormat.format(value)
+export function setFormatLocale(locale: keyof typeof FORMAT_LOCALES): void {
+  activeLocale = locale
 }
 
-const percentFormat = new Intl.NumberFormat('en-TZ', {
-  style: 'percent',
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-})
+type FormatterSet = {
+  number: Intl.NumberFormat
+  percent: Intl.NumberFormat
+  date: Intl.DateTimeFormat
+  dateTime: Intl.DateTimeFormat
+}
+
+const formatterCache = new Map<string, FormatterSet>()
+
+function formatters(): FormatterSet {
+  let set = formatterCache.get(activeLocale)
+  if (set === undefined) {
+    const tag = FORMAT_LOCALES[activeLocale]
+    set = {
+      number: new Intl.NumberFormat(tag, { minimumFractionDigits: 0, maximumFractionDigits: 4 }),
+      percent: new Intl.NumberFormat(tag, {
+        style: 'percent',
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+      date: new Intl.DateTimeFormat(tag, { year: 'numeric', month: 'short', day: '2-digit' }),
+      dateTime: new Intl.DateTimeFormat(tag, { dateStyle: 'medium', timeStyle: 'short' }),
+    }
+    formatterCache.set(activeLocale, set)
+  }
+  return set
+}
+
+export function formatNumber(value: number | null): string {
+  return value === null ? EM_DASH : formatters().number.format(value)
+}
 
 /**
  * For values that are genuinely a probability/percentile/proportion in
@@ -29,7 +58,7 @@ const percentFormat = new Intl.NumberFormat('en-TZ', {
  * doing so would imply a probabilistic meaning the value doesn't have.
  */
 export function formatPercent(value: number | null): string {
-  return value === null ? EM_DASH : percentFormat.format(value)
+  return value === null ? EM_DASH : formatters().percent.format(value)
 }
 
 /**
@@ -41,7 +70,7 @@ export function formatPercent(value: number | null): string {
  * accompanying label as "Priority score", never "probability" or "chance".
  */
 export function formatScorePercent(value: number | null): string {
-  return value === null ? EM_DASH : percentFormat.format(value)
+  return value === null ? EM_DASH : formatters().percent.format(value)
 }
 
 export function formatCoordinatePair(
@@ -62,11 +91,7 @@ export function formatDate(value: string | null): string {
   if (Number.isNaN(parsed.getTime())) {
     return value
   }
-  return new Intl.DateTimeFormat('en-TZ', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-  }).format(parsed)
+  return formatters().date.format(parsed)
 }
 
 export function formatDateTime(value: string): string {
@@ -74,8 +99,5 @@ export function formatDateTime(value: string): string {
   if (Number.isNaN(parsed.getTime())) {
     return value
   }
-  return new Intl.DateTimeFormat('en-TZ', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(parsed)
+  return formatters().dateTime.format(parsed)
 }

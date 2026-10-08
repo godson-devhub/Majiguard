@@ -49,6 +49,22 @@ export type WaterPointOut = {
   administrative_assignment_version: string | null
   administrative_assignment_crs: string | null
   survey_date: string | null
+  water_source: string | null
+  water_technology: string | null
+  water_tech_category: string | null
+  management_type: string | null
+  payment_type: string | null
+  install_year: number | null
+  age_at_survey_years: number | null
+  subjective_water_quality: string | null
+  n_water_points_within_1000m: number | null
+  dist_nearest_any_water_point_m: number | null
+  worldpop2022_pop_within_1000m: number | null
+  rain_3m_prior_mm: number | null
+  rain_3m_pct_of_normal: number | null
+  dry_months_prior12_lt30mm: number | null
+  dist_nearest_health_facility_m: number | null
+  dist_nearest_school_m: number | null
 }
 
 export type MapPointOut = {

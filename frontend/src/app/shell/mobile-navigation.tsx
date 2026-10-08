@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 
 import { useI18n } from '@/app/providers/locale-provider'
-import { primaryNavigation, secondaryNavigation } from '@/app/shell/navigation-config'
+import { navigationGroups, secondaryNavigation } from '@/app/shell/navigation-config'
 import { NavigationLink } from '@/app/shell/navigation-link'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { Button } from '@/components/ui/button'
@@ -85,19 +85,26 @@ export function MobileNavigation({ open, onOpenChange }: MobileNavigationProps) 
           aria-label={t('nav.drawerLabel')}
           className="flex-1 overflow-y-auto overscroll-contain p-2"
         >
-          <ul className="space-y-0.5">
-            {primaryNavigation.map((item) => (
-              <li key={item.path}>
-                <NavigationLink
-                  item={item}
-                  compact={false}
-                  onNavigate={() => {
-                    onOpenChange(false)
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
+          {navigationGroups.map((group) => (
+            <div key={group.labelKey} className="mb-2">
+              <p className="px-3 pb-1 pt-3 text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
+                {t(group.labelKey)}
+              </p>
+              <ul className="space-y-0.5">
+                {group.items.map((item) => (
+                  <li key={item.path}>
+                    <NavigationLink
+                      item={item}
+                      compact={false}
+                      onNavigate={() => {
+                        onOpenChange(false)
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
           <Separator className="my-3 bg-sidebar-border" />
 

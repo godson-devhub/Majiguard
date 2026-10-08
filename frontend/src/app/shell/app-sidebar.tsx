@@ -19,7 +19,8 @@ type AppSidebarProps = {
 }
 
 /**
- * Primary navigation, grouped into labelled sections.
+ * Primary navigation, grouped into the Decide and Explore workflow sections,
+ * with Settings pinned to the bottom beside the collapse control.
  *
  * Section headings are dropped in the icon rail, where there is no room for
  * them, so the rail never shows an orphaned label.
@@ -30,13 +31,13 @@ export function AppSidebar({ compact, collapsed, onToggleCollapsed }: AppSidebar
   return (
     <aside
       className={cn(
-        'sticky top-[var(--header-height)] hidden shrink-0 self-start overflow-y-auto overscroll-contain border-e border-sidebar-border bg-sidebar md:block',
+        'sticky top-[var(--header-height)] hidden shrink-0 self-start overflow-y-auto overscroll-contain border-e border-sidebar-border bg-sidebar/95 backdrop-blur-sm md:block',
         'h-[calc(100dvh-var(--header-height))]',
         compact ? 'w-16' : 'w-64',
       )}
     >
       <div className="flex h-full flex-col p-3">
-        <nav aria-label={t('nav.label')}>
+        <nav aria-label={t('nav.label')} className="flex flex-1 flex-col">
           {ungroupedNavigation.length > 0 ? (
             <ul className="space-y-0.5">
               {ungroupedNavigation.map((item) => (
@@ -48,14 +49,11 @@ export function AppSidebar({ compact, collapsed, onToggleCollapsed }: AppSidebar
           ) : null}
 
           {navigationGroups.map((group, index) => (
-            <div
-              key={group.labelKey}
-              className={cn(index === 0 && ungroupedNavigation.length > 0 && 'mt-5')}
-            >
+            <div key={group.labelKey} className={cn(index > 0 && 'mt-2')}>
               {compact ? (
-                <Separator className="mb-2 mt-3 bg-sidebar-border" />
+                index > 0 ? <Separator className="my-2 bg-sidebar-border" /> : null
               ) : (
-                <p className="px-3 pb-1.5 pt-4 text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="px-3 pb-1 pt-3 text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
                   {t(group.labelKey)}
                 </p>
               )}
@@ -69,18 +67,19 @@ export function AppSidebar({ compact, collapsed, onToggleCollapsed }: AppSidebar
             </div>
           ))}
 
-          <Separator className="my-4 bg-sidebar-border" />
-
-          <ul className="space-y-0.5">
-            {secondaryNavigation.map((item) => (
-              <li key={item.path}>
-                <NavigationLink item={item} compact={compact} />
-              </li>
-            ))}
-          </ul>
+          <div className="mt-auto pt-4">
+            <Separator className="mb-3 bg-sidebar-border" />
+            <ul className="space-y-0.5">
+              {secondaryNavigation.map((item) => (
+                <li key={item.path}>
+                  <NavigationLink item={item} compact={compact} />
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
 
-        <div className="mt-auto hidden pt-4 lg:block">
+        <div className="hidden pt-2 lg:block">
           <Button
             variant="ghost"
             size="sm"
