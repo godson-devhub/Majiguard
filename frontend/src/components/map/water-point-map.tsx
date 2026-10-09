@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Minus, Plus, RotateCcw } from 'lucide-react'
+import { Maximize2, Minimize2, Minus, Plus, RotateCcw } from 'lucide-react'
 import { divIcon } from 'leaflet'
 import type { LatLngBounds, LatLngBoundsExpression, Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -268,6 +268,12 @@ type WaterPointMapProps = {
   onSelectRegion?: (region: string) => void
   onSelectDistrict?: (region: string, district: string) => void
   onSelectWard?: (region: string, district: string, ward: string) => void
+  /** Public-page mode: no link into the signed-in register, and an on/off
+   * switch for pan/scroll-zoom interaction (zoom buttons always work). */
+  guestMode?: boolean
+  /** Full-screen toggle. Both props together show the control; omit for maps that cannot maximise. */
+  maximized?: boolean
+  onToggleMaximize?: () => void
   className?: string
 }
 
@@ -294,6 +300,9 @@ export function WaterPointMap({
   onSelectRegion,
   onSelectDistrict,
   onSelectWard,
+  guestMode = false,
+  maximized = false,
+  onToggleMaximize,
   className,
 }: WaterPointMapProps) {
   const { t } = useI18n()
@@ -339,6 +348,24 @@ export function WaterPointMap({
     return { clusters: aggregated.clusters, singles: aggregated.singles }
   }, [points, view])
 
+  // Guest (landing) maps are a demonstration: every interaction stays off.
+  useEffect(() => {
+    const map = mapRef.current
+    if (map === null || !guestMode) {
+      return
+    }
+    for (const handler of [
+      map.dragging,
+      map.scrollWheelZoom,
+      map.touchZoom,
+      map.doubleClickZoom,
+      map.boxZoom,
+      map.keyboard,
+    ]) {
+      handler.disable()
+    }
+  }, [guestMode, view])
+
   function zoomTowardCluster(latitude: number, longitude: number) {
     const map = mapRef.current
     if (map === null) {
@@ -357,12 +384,12 @@ export function WaterPointMap({
   return (
     <figure
       className={cn(
-        'flex h-[32rem] min-h-0 flex-col overflow-hidden rounded-panel border border-border-strong bg-card',
+        'mg-glass mg-glass-static flex h-[32rem] min-h-0 flex-col overflow-hidden',
         className,
       )}
     >
       <div className="relative isolate z-0 min-h-0 flex-1 bg-map-surface">
-        <div className="mg-leaflet absolute inset-0">
+        <div className={cn('mg-leaflet absolute inset-0', guestMode && 'pointer-events-none')}>
           <MapContainer
             center={INITIAL_CENTER}
             zoom={MIN_ZOOM}
@@ -370,7 +397,7 @@ export function WaterPointMap({
             maxZoom={MAX_ZOOM}
             scrollWheelZoom
             zoomControl={false}
-            keyboard
+            keyboard={!guestMode}
             maxBounds={MAX_PAN_BOUNDS}
             maxBoundsViscosity={0.75}
             className="h-full w-full"
@@ -440,9 +467,11 @@ export function WaterPointMap({
         </div>
 
         {/* Top-left: the grouped layer panel. */}
+        {guestMode ? null : (
         <div className="absolute top-3 left-3 z-[500]">
           <MapLayerSwitcher layer={layer} onLayerChange={onLayerChange} points={points} />
         </div>
+        )}
 
         {/* Bottom-right: the collapsible legend, above the attribution. */}
         <div className="absolute right-3 bottom-8 z-[500]">
@@ -450,6 +479,7 @@ export function WaterPointMap({
         </div>
 
         {/* Top-right: zoom controls. */}
+        {guestMode ? null : (
         <div className="absolute top-3 right-3 z-[500] flex flex-col items-end gap-1.5">
           <div className="flex flex-col gap-1.5">
             <button
@@ -484,9 +514,26 @@ export function WaterPointMap({
             >
               <RotateCcw aria-hidden="true" className="size-4" />
             </button>
+            {onToggleMaximize === undefined ? null : (
+              <button
+                type="button"
+                onClick={onToggleMaximize}
+                aria-pressed={maximized}
+                aria-label={t(maximized ? 'map.minimize' : 'map.maximize')}
+                title={t(maximized ? 'map.minimize' : 'map.maximize')}
+                className="flex size-10 items-center justify-center rounded-control border border-map-overlay-border bg-map-overlay text-foreground shadow-mg-2 mg-transition pointer-coarse:size-11 hover:bg-accent"
+              >
+                {maximized ? (
+                  <Minimize2 aria-hidden="true" className="size-4" />
+                ) : (
+                  <Maximize2 aria-hidden="true" className="size-4" />
+                )}
+              </button>
+            )}
           </div>
 
         </div>
+        )}
       </div>
 
       <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border bg-card px-3 py-2">
@@ -505,12 +552,14 @@ export function WaterPointMap({
                       ? t('map.legend.note.restoration')
                       : t('map.legend.note.consequence')}
         </p>
-        <Link
-          to="/water-points"
-          className="text-mg-caption font-semibold text-primary underline-offset-2 hover:underline"
-        >
-          {t('dashboard.openRegister')}
-        </Link>
+        {guestMode ? null : (
+          <Link
+            to="/water-points"
+            className="text-mg-caption font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            {t('dashboard.openRegister')}
+          </Link>
+        )}
       </figcaption>
     </figure>
   )

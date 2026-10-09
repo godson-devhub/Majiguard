@@ -4,6 +4,8 @@ import { Menu, X } from 'lucide-react'
 import { useI18n } from '@/app/providers/locale-provider'
 import { navigationGroups, secondaryNavigation } from '@/app/shell/navigation-config'
 import { NavigationLink } from '@/app/shell/navigation-link'
+import { SignOutButton } from '@/app/shell/sign-out-button'
+import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -19,6 +21,8 @@ import {
 type MobileNavigationProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** trigger colours when it sits on a light surface instead of the blue bar */
+  triggerClassName?: string
 }
 
 /**
@@ -29,8 +33,9 @@ type MobileNavigationProps = {
  * Focus handling, the focus trap, Escape-to-close and `aria-expanded` /
  * `aria-controls` on the trigger all come from the Base UI dialog primitive.
  */
-export function MobileNavigation({ open, onOpenChange }: MobileNavigationProps) {
+export function MobileNavigation({ open, onOpenChange, triggerClassName }: MobileNavigationProps) {
   const { t } = useI18n()
+  const secondary = secondaryNavigation
   const sidebarVisible = useMediaQuery('(min-width: 48rem)')
 
   useEffect(() => {
@@ -46,7 +51,7 @@ export function MobileNavigation({ open, onOpenChange }: MobileNavigationProps) 
           <Button
             variant="ghost"
             size="icon"
-            className="text-sidebar-foreground md:hidden"
+            className={cn('md:hidden', triggerClassName ?? 'text-white hover:bg-white/15 hover:text-white')}
           />
         }
       >
@@ -87,7 +92,7 @@ export function MobileNavigation({ open, onOpenChange }: MobileNavigationProps) 
         >
           {navigationGroups.map((group) => (
             <div key={group.labelKey} className="mb-2">
-              <p className="px-3 pb-1 pt-3 text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="px-3 pb-1 pt-3 text-mg-caption font-semibold uppercase tracking-wider text-sidebar-foreground/70">
                 {t(group.labelKey)}
               </p>
               <ul className="space-y-0.5">
@@ -109,7 +114,7 @@ export function MobileNavigation({ open, onOpenChange }: MobileNavigationProps) 
           <Separator className="my-3 bg-sidebar-border" />
 
           <ul className="space-y-0.5">
-            {secondaryNavigation.map((item) => (
+            {secondary.map((item) => (
               <li key={item.path}>
                 <NavigationLink
                   item={item}
@@ -120,6 +125,14 @@ export function MobileNavigation({ open, onOpenChange }: MobileNavigationProps) 
                 />
               </li>
             ))}
+            <li>
+              <SignOutButton
+                compact={false}
+                onSignedOut={() => {
+                  onOpenChange(false)
+                }}
+              />
+            </li>
           </ul>
         </nav>
       </SheetContent>

@@ -36,6 +36,8 @@ type KpiCardProps = {
   tone?: KpiTone
   /** Rendered under the figure, e.g. a status availability chip. */
   footer?: ReactNode
+  /** Thin one-row tile: icon, title and figure only (no hint or footer). */
+  compact?: boolean
   className?: string
 }
 
@@ -52,14 +54,43 @@ export function KpiCard({
   hint,
   tone = 'brand',
   footer,
+  compact = false,
   className,
 }: KpiCardProps) {
   const { t } = useI18n()
 
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          'mg-glass flex items-center gap-3 rounded-2xl border border-border bg-card/80 px-4 py-3',
+          className,
+        )}
+      >
+        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+          <Icon aria-hidden="true" className={cn('size-5', TONE_ICON[tone])} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-mg-caption font-semibold text-muted-foreground">{label}</p>
+          {state === 'loading' ? (
+            <div role="status" aria-live="polite">
+              <span className="sr-only">{t('state.loadingSection')}</span>
+              <Skeleton aria-hidden="true" className="mt-1 h-6 w-16" />
+            </div>
+          ) : state === 'error' ? (
+            <p className="text-mg-body-sm font-semibold text-muted-foreground">{t('state.unavailable')}</p>
+          ) : (
+            <p className="mg-figure font-serif text-2xl leading-tight font-semibold text-foreground">{value}</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
-        'flex flex-col justify-between gap-3 border-s border-primary/70 bg-card px-5 py-4',
+        'mg-glass flex flex-col justify-between gap-3 rounded-2xl border border-border bg-card/80 px-5 py-4 shadow-mg-1 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-mg-3',
         className,
       )}
     >

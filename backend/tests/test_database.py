@@ -8,4 +8,5 @@ def test_declarative_base_has_application_tables() -> None:
         "impact_results",
         "consequence_results",
         "priority_results",
+        "users",
     }

@@ -75,7 +75,7 @@ export function RegionDistribution({
   }
 
   return (
-    <div className={cn('overflow-hidden rounded-md border border-border bg-card', className)}>
+    <div className={cn('mg-glass mg-glass-static overflow-hidden', className)}>
       <table className="w-full text-start">
         <caption className="sr-only">{t('analytics.region.title')}</caption>
         <thead>

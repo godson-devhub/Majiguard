@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type PointerEvent } from 'react'
 import { Outlet } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
@@ -7,7 +7,25 @@ import { AppHeader } from '@/app/shell/app-header'
 import { AppSidebar } from '@/app/shell/app-sidebar'
 import { MobileNavigation } from '@/app/shell/mobile-navigation'
 import { RouteChangeAnnouncer } from '@/app/shell/route-change-announcer'
+import { DashboardControls } from '@/app/shell/dashboard-controls'
+import { cn } from '@/lib/utils'
+import { preloadAppRoutes } from '@/app/route-loaders'
+import { prioritySummaryQueryOptions } from '@/hooks/priority'
+import { waterPointListQueryOptions } from '@/hooks/water-points'
+import { FUNCTIONAL_STATUS, NON_FUNCTIONAL_STATUS } from '@/hooks/estate-kpis'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMediaQuery } from '@/hooks/use-media-query'
+
+/** Feeds the glass cards' cursor light: position relative to the hovered card. */
+function trackSpotlight(event: PointerEvent<HTMLElement>) {
+  const card = (event.target as HTMLElement).closest<HTMLElement>('.mg-glass')
+  if (card === null) {
+    return
+  }
+  const box = card.getBoundingClientRect()
+  card.style.setProperty('--mx', `${event.clientX - box.left}px`)
+  card.style.setProperty('--my', `${event.clientY - box.top}px`)
+}
 
 const SIDEBAR_STORAGE_KEY = 'majiguard.sidebar'
 
@@ -29,6 +47,8 @@ function readSidebarPreference(): boolean {
  */
 export function AppShell() {
   const { t } = useI18n()
+  const queryClient = useQueryClient()
+  const isDashboard = true // every app screen shares the glass shell
   const [navigationOpen, setNavigationOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(readSidebarPreference)
   const isWideViewport = useMediaQuery('(min-width: 64rem)')
@@ -41,29 +61,31 @@ export function AppShell() {
     )
   }, [collapsed])
 
+  // Start the national figures and the other screens' code immediately and in
+  // parallel, so they are usually ready before the user opens them.
+  useEffect(() => {
+    void queryClient.prefetchQuery(prioritySummaryQueryOptions())
+    void queryClient.prefetchQuery(waterPointListQueryOptions({ page: 1, page_size: 1 }))
+    for (const status of [FUNCTIONAL_STATUS, NON_FUNCTIONAL_STATUS]) {
+      void queryClient.prefetchQuery(
+        waterPointListQueryOptions({ page: 1, page_size: 1, observed_status: status }),
+      )
+    }
+    preloadAppRoutes()
+  }, [queryClient])
+
   const toggleCollapsed = useCallback(() => {
     setCollapsed((current) => !current)
   }, [])
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+    <div className={cn('flex min-h-dvh flex-col bg-background text-foreground', isDashboard && 'mg-landing mg-dashboard')}>
       <a
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-mg-body-sm focus:font-medium focus:text-foreground focus:shadow-mg-2"
         href="#main-content"
       >
         {t('app.skipToContent')}
       </a>
-
-      <div className="sticky top-0 z-40">
-        <AppHeader
-          leading={
-            <MobileNavigation
-              open={navigationOpen}
-              onOpenChange={setNavigationOpen}
-            />
-          }
-        />
-      </div>
 
       {/*
         No `max-w`/`mx-auto` on this row: the sidebar must reach the real
@@ -72,21 +94,46 @@ export function AppShell() {
         column's own inner wrapper (around `<Outlet />` below) is width-capped
         for readability - the sidebar, header and footer all stay full-bleed.
       */}
+      {isDashboard ? null : (
+        <AppHeader
+          leading={
+            <MobileNavigation open={navigationOpen} onOpenChange={setNavigationOpen} />
+          }
+        />
+      )}
       <div className="flex w-full flex-1 items-start">
         <AppSidebar
           compact={compact}
           collapsed={collapsed}
           onToggleCollapsed={toggleCollapsed}
+          headerless={isDashboard}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main id="main-content" tabIndex={-1} className="flex-1">
-            <div className="mx-auto w-full max-w-[100rem] px-4 py-6 lg:px-6 xl:px-8">
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="flex-1"
+            onPointerMove={isDashboard ? trackSpotlight : undefined}
+          >
+            <div className={cn('w-full px-4 lg:px-8 xl:px-10', isDashboard ? 'pb-4 pt-3' : 'py-6')}>
+              {isDashboard ? (
+                <>
+                  <DashboardControls />
+                  <div className="mb-2 flex h-9 items-center md:hidden">
+                    <MobileNavigation
+                      open={navigationOpen}
+                      onOpenChange={setNavigationOpen}
+                      triggerClassName="text-foreground hover:bg-accent"
+                    />
+                  </div>
+                </>
+              ) : null}
               <RouteChangeAnnouncer />
               <Outlet />
             </div>
           </main>
-          <AppFooter />
+          {isDashboard ? null : <AppFooter />}
         </div>
       </div>
     </div>

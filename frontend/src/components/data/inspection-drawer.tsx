@@ -59,7 +59,7 @@ export function InspectionDrawer({ id, mapPoint = null, priorityItem = null, onC
       <SheetContent
         side={wide ? 'right' : 'bottom'}
         finalFocus={() => opener.current ?? true}
-        className="data-[side=bottom]:max-h-[88dvh] data-[side=right]:w-full"
+        className="mg-landing mg-dashboard data-[side=bottom]:max-h-[88dvh] data-[side=right]:w-full"
       >
         <SheetHeader className="border-b border-border pe-14">
           <SheetTitle>{t('detail.inspection.title')}</SheetTitle>

@@ -14,6 +14,22 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    build: {
+      rolldownOptions: {
+        output: {
+          // Libraries change far less often than the app: give them their own
+          // long-lived chunks so a new release only re-downloads app code.
+          codeSplitting: {
+            groups: [
+              { name: 'vendor-react', test: /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/, priority: 30 },
+              { name: 'vendor-query', test: /[\\/]node_modules[\\/]@tanstack[\\/]/, priority: 25 },
+              { name: 'vendor-leaflet', test: /[\\/]node_modules[\\/](leaflet|react-leaflet|@react-leaflet)[\\/]/, priority: 25 },
+              { name: 'vendor-ui', test: /[\\/]node_modules[\\/](@base-ui|@floating-ui|lucide-react)[\\/]/, priority: 20 },
+            ],
+          },
+        },
+      },
+    },
     server: {
       host: '0.0.0.0',
       port: 5173,

@@ -1,8 +1,10 @@
-import { Link, Outlet } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
 import { AppFooter } from '@/app/shell/app-footer'
-import { AppHeader } from '@/app/shell/app-header'
+import { InstitutionalHeader } from '@/components/brand/institutional-header'
+import { LocaleSwitch } from '@/components/i18n/locale-switch'
+import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -13,35 +15,39 @@ import { cn } from '@/lib/utils'
  */
 export function PublicLayout() {
   const { t } = useI18n()
+  const { pathname } = useLocation()
+  const isBare = pathname === '/login' || pathname === '/signup'
+  const isLanding = pathname === '/' || isBare
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+    <div className={cn('flex min-h-dvh flex-col bg-background text-foreground', isLanding && 'mg-landing', isBare && 'mg-dashboard')}>
       <a
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-mg-body-sm focus:font-medium focus:text-foreground focus:shadow-mg-2"
         href="#main-content"
       >
         {t('app.skipToContent')}
       </a>
-      <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm">
-        <AppHeader />
-        <nav aria-label={t('public.nav.label')} className="hidden border-b border-border bg-card md:block">
-          <div className="mx-auto flex max-w-[var(--content-max-width)] items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-6 text-mg-caption font-medium">
-              <a href="#about" className="text-muted-foreground hover:text-foreground">{t('public.nav.about')}</a>
-              <a href="#features" className="text-muted-foreground hover:text-foreground">{t('public.nav.features')}</a>
-              <a href="#how-it-works" className="text-muted-foreground hover:text-foreground">{t('public.nav.how')}</a>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link to="/login" className="text-mg-caption font-medium text-muted-foreground hover:text-foreground">{t('public.nav.login')}</Link>
-              <Link to="/signup" className={cn(buttonVariants({ size: 'sm' }))}>{t('public.nav.getStarted')}</Link>
+      {isBare ? null : <InstitutionalHeader
+        bar={
+          <div className="flex min-h-14 flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2 sm:px-6 lg:px-8">
+            <nav aria-label={t('public.nav.label')} className="hidden items-center gap-6 text-mg-body font-bold md:flex">
+              <a href="/#about" className="underline-offset-4 hover:underline">{t('public.nav.about')}</a>
+              <a href="/#features" className="underline-offset-4 hover:underline">{t('public.nav.features')}</a>
+              <a href="/#how-it-works" className="underline-offset-4 hover:underline">{t('public.nav.how')}</a>
+            </nav>
+            <div className="ms-auto flex items-center gap-2 sm:gap-3">
+              <LocaleSwitch />
+              <ThemeToggle />
+              <Link to="/login" className="px-2 text-mg-body font-bold underline-offset-4 hover:underline">{t('public.nav.login')}</Link>
+              <Link to="/signup" className={cn(buttonVariants({ size: 'sm' }), 'bg-white font-bold text-ocean hover:bg-white/90')}>{t('public.nav.getStarted')}</Link>
             </div>
           </div>
-        </nav>
-      </div>
+        }
+      />}
       <main id="main-content" tabIndex={-1} className="flex-1">
         <Outlet />
       </main>
-      <AppFooter />
+      {isBare ? null : <AppFooter guest />}
     </div>
   )
 }

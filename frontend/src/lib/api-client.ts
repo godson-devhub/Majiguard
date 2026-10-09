@@ -1,3 +1,4 @@
+import { getAuthToken } from '@/lib/auth-token'
 import { env } from '@/lib/env'
 
 export type ApiQueryValue = string | number | boolean | null | undefined
@@ -5,6 +6,8 @@ export type ApiQueryValue = string | number | boolean | null | undefined
 export type ApiRequestOptions = {
   params?: Record<string, ApiQueryValue>
   method?: 'GET' | 'POST'
+  /** JSON request body (POST). */
+  body?: unknown
   /** Cancellation signal, normally supplied by React Query. */
   signal?: AbortSignal
 }
@@ -70,14 +73,19 @@ async function readErrorDetail(response: Response): Promise<string | null> {
 
 export async function apiRequest<T>(
   path: string,
-  { params, method = 'GET', signal }: ApiRequestOptions = {},
+  { params, method = 'GET', signal, body }: ApiRequestOptions = {},
 ): Promise<T> {
   let response: Response
 
   try {
     response = await fetch(buildApiUrl(path, params), {
       method,
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(getAuthToken() === null ? {} : { Authorization: `Bearer ${getAuthToken()}` }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal,
     })
   } catch (cause) {

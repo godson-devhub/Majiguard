@@ -1,4 +1,4 @@
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useQuery } from '@tanstack/react-query'
 
 import {
   getPrioritySummary,
@@ -96,12 +96,26 @@ export function prioritySummaryQueryOptions() {
   })
 }
 
-export function usePreventivePriorityQuery(params: PriorityListParams = {}) {
-  return useQuery(preventivePriorityQueryOptions(params))
+export function usePreventivePriorityQuery(
+  params: PriorityListParams = {},
+  options: { keepPrevious?: boolean; enabled?: boolean } = {},
+) {
+  return useQuery({
+    ...preventivePriorityQueryOptions(params),
+    enabled: options.enabled ?? true,
+    ...(options.keepPrevious === true ? { placeholderData: keepPreviousData } : {}),
+  })
 }
 
-export function useRestorationPriorityQuery(params: PriorityListParams = {}) {
-  return useQuery(restorationPriorityQueryOptions(params))
+export function useRestorationPriorityQuery(
+  params: PriorityListParams = {},
+  options: { keepPrevious?: boolean; enabled?: boolean } = {},
+) {
+  return useQuery({
+    ...restorationPriorityQueryOptions(params),
+    enabled: options.enabled ?? true,
+    ...(options.keepPrevious === true ? { placeholderData: keepPreviousData } : {}),
+  })
 }
 
 export function usePrioritySummaryQuery() {

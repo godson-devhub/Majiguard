@@ -161,13 +161,17 @@ const DECISION_MAP_CONCURRENCY = 3
  * already rendered page 1's real points, instead of blocking the entire
  * route behind a full-screen spinner forever.
  */
-export function useProgressiveMapPoints(params: WaterPointListParams = {}) {
+export function useProgressiveMapPoints(
+  params: WaterPointListParams = {},
+  options: { enabled?: boolean } = {},
+) {
   const queryClient = useQueryClient()
   const queryKey = [...waterPointKeys.maps(), 'progressive', params] as const
 
   return useQuery({
     queryKey,
     staleTime: 5 * 60_000,
+    enabled: options.enabled ?? true,
     queryFn: async ({ signal }) => {
       const base = { ...params, page_size: MAP_ESTATE_PAGE_SIZE }
       const first = await listMapPoints({ ...base, page: 1 }, signal)
@@ -337,9 +341,10 @@ export function useObservedStatusSummary(
   region: string | null = null,
   district: string | null = null,
   ward: string | null = null,
+  statuses: readonly (typeof OBSERVED_STATUS_VALUES)[number][] = OBSERVED_STATUS_VALUES,
 ) {
   return useQueries({
-    queries: OBSERVED_STATUS_VALUES.map((status) =>
+    queries: statuses.map((status) =>
       waterPointListQueryOptions({
         page: 1,
         page_size: 1,

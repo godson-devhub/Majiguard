@@ -9,6 +9,7 @@ def test_models_load_and_metadata() -> None:
         "impact_results",
         "consequence_results",
         "priority_results",
+        "users",
     }
 
 

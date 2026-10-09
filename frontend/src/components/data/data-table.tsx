@@ -12,6 +12,9 @@ type DataTableProps = {
   caption: string
   columns: DataColumn[]
   children: ReactNode
+  /** Keep the caption for assistive tech only (the page already names the data). */
+  captionHidden?: boolean
+  className?: string
 }
 
 /**
@@ -21,16 +24,22 @@ type DataTableProps = {
  * scroll container is focusable and labelled so it can be scrolled with the
  * keyboard alone.
  */
-export function DataTable({ caption, columns, children }: DataTableProps) {
+export function DataTable({ caption, columns, children, captionHidden = false, className }: DataTableProps) {
   return (
     <div
       role="region"
       aria-label={caption}
       tabIndex={0}
-      className="overflow-x-auto rounded-md border border-border bg-card"
+      className={cn('mg-glass mg-glass-static overflow-x-auto', className)}
     >
       <table className="w-full min-w-[24rem] border-collapse text-start">
-        <caption className="border-b border-border px-4 py-3 text-start text-mg-title-sm font-semibold text-foreground">
+        <caption
+          className={
+            captionHidden
+              ? 'sr-only'
+              : 'border-b border-border px-4 py-3 text-start text-mg-title-sm font-semibold text-foreground'
+          }
+        >
           {caption}
         </caption>
         <thead>
@@ -40,7 +49,7 @@ export function DataTable({ caption, columns, children }: DataTableProps) {
                 key={column.label}
                 scope="col"
                 className={cn(
-                  'px-4 py-2 text-start text-mg-label font-semibold text-muted-foreground',
+                  'px-3 py-2 text-start text-mg-label font-semibold text-muted-foreground',
                   column.className,
                 )}
               >
@@ -86,5 +95,5 @@ export function DataCell({
   children: ReactNode
   className?: string
 }) {
-  return <td className={cn('px-4 py-2 text-mg-body-sm text-foreground', className)}>{children}</td>
+  return <td className={cn('px-3 py-2 text-mg-body-sm text-foreground', className)}>{children}</td>
 }
