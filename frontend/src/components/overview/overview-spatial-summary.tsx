@@ -7,7 +7,6 @@ import { Link } from 'react-router'
 import { useI18n } from '@/app/providers/locale-provider'
 import { useTheme } from '@/app/providers/theme-provider'
 import { EmptyState, FailureState, LoadingState } from '@/components/data/data-states'
-import { formatNumber } from '@/components/data/format'
 import { encodeMarker } from '@/components/map/map-layers'
 import {
   BASEMAP_ATTRIBUTION,
@@ -58,12 +57,10 @@ type OverviewSpatialSummaryProps = {
  */
 export function OverviewSpatialSummary({
   points,
-  total,
   isPending,
   isError,
   error,
   onRetry,
-  isScoped,
 }: OverviewSpatialSummaryProps) {
   const { t } = useI18n()
   const { theme } = useTheme()
@@ -81,27 +78,22 @@ export function OverviewSpatialSummary({
   const layer = useMemo(() => buildDensityLayer(eligiblePoints, FIXED_ZOOM, 40), [eligiblePoints])
 
   return (
-    <section aria-labelledby="overview-spatial-heading" className="space-y-3">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+    <section aria-labelledby="overview-spatial-heading" className="mg-glass flex min-h-0 flex-col overflow-hidden">
+      <div className="flex min-h-9 items-center justify-between gap-x-6 px-4 pb-2 pt-3">
         <div>
-          <h2
-            id="overview-spatial-heading"
-            className="text-mg-title-md font-semibold text-foreground"
-          >
+          <h2 id="overview-spatial-heading" className="text-mg-title-md text-foreground">
             {t('overview.spatial.title')}
           </h2>
-          <p className="mt-1 max-w-[60ch] text-mg-body-sm text-muted-foreground">
-            {t('overview.spatial.description')}
-          </p>
+          
         </div>
         <Button size="sm" variant="outline" nativeButton={false} render={<Link to="/decision-map" />}>
           {t('overview.spatial.cta')}
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-border bg-card">
+      <div className="flex min-h-0 flex-1 flex-col px-3 pb-3">
         {isPending ? (
-          <div className="flex h-56 items-center justify-center p-4">
+          <div className="flex min-h-40 flex-1 items-center justify-center p-4">
             <LoadingState label={t('data.loading')} />
           </div>
         ) : isError ? (
@@ -114,7 +106,7 @@ export function OverviewSpatialSummary({
           </div>
         ) : (
           <>
-            <div className="mg-leaflet relative h-56 bg-map-surface" aria-hidden="true">
+            <div className="mg-leaflet relative min-h-52 flex-1 overflow-hidden rounded-xl bg-map-surface" aria-hidden="true">
               <MapContainer
                 center={FIXED_CENTER}
                 zoom={FIXED_ZOOM}
@@ -128,7 +120,7 @@ export function OverviewSpatialSummary({
                 keyboard={false}
                 touchZoom={false}
                 attributionControl={false}
-                className="h-full w-full"
+                className="absolute inset-0 h-full w-full"
               >
                 <TileLayer
                   key={theme}
@@ -159,12 +151,6 @@ export function OverviewSpatialSummary({
                 })}
               </MapContainer>
             </div>
-            <p className="border-t border-border px-3 py-2 text-mg-caption text-muted-foreground">
-              {t(isScoped ? 'overview.spatial.captionScoped' : 'overview.spatial.caption', {
-                shown: formatNumber(eligiblePoints.length),
-                total: formatNumber(total),
-              })}
-            </p>
           </>
         )}
       </div>

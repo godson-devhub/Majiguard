@@ -1,6 +1,6 @@
-import { Fragment, useId, useState } from 'react'
+import { Fragment, useCallback, useEffect, useId, useState } from 'react'
 import { CircleSlash } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
 import { SectionPage, Pagination } from '@/app/shell/section-page'
@@ -12,24 +12,27 @@ import { EmptyState, FailureState, LoadingState } from '@/components/data/data-s
 import { DataCell, DataRow, DataTable } from '@/components/data/data-table'
 import { WaterPointInspectionPanel } from '@/components/data/water-point-inspection-panel'
 import { RegisterFilterBar } from '@/components/data/register-filter-bar'
-import { formatDate, formatNumber } from '@/components/data/format'
+import { formatNumber } from '@/components/data/format'
 import { ObservedStatusChip } from '@/components/data/observed-status'
 import { SemanticChip } from '@/components/status/semantic-chip'
-import { useMapPointsAll, useWaterPointListQuery } from '@/hooks/water-points'
+import { impactFilterBand } from '@/lib/decision-map-filters'
+import { useElementSize } from '@/hooks/use-element-size'
+import type { MessageKey } from '@/i18n/messages'
+import { observedStatusLabel } from '@/lib/status-labels'
+import {
+  useMapPointsAll,
+  useProgressiveMapPoints,
+  useWaterPointListQuery,
+  useWaterPointQuery,
+} from '@/hooks/water-points'
 import {
   EMPTY_FILTERS,
+  OBSERVED_STATUS_VALUES,
   type RegisterFilters,
 } from '@/lib/register-reference'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import type { MapPointOut } from '@/types/api'
-
-/**
- * Rows requested per page. The register rejects any `page_size` above 500, so
- * this stays well inside the contract and the page jump in `Pagination` is what
- * makes the deeper pages reachable.
- */
-const PAGE_SIZE = 50
 
 /* ------------------------------------------------------------------ *
  * The old Dashboard composition (KPI band, embedded map, coverage bar,
@@ -41,104 +44,294 @@ const PAGE_SIZE = 50
  * Water points â€” the register
  * ------------------------------------------------------------------ */
 
+type Lens =
+  | 'all'
+  | `status:${string}`
+  | 'fh'
+  | 'fm'
+  | 'fl'
+  | 'fi'
+  | 'fim'
+  | 'fil'
+  | 'ni'
+  | 'nim'
+  | 'nil'
+
+const FOCUS_LENSES: { value: Lens; labelKey: MessageKey; status: string }[] = [
+  { value: 'fh', labelKey: 'waterPoints.lens.fh', status: 'Functional' },
+  { value: 'fm', labelKey: 'waterPoints.lens.fm', status: 'Functional' },
+  { value: 'fl', labelKey: 'waterPoints.lens.fl', status: 'Functional' },
+  { value: 'fi', labelKey: 'waterPoints.lens.fi', status: 'Functional' },
+  { value: 'fim', labelKey: 'waterPoints.lens.fim', status: 'Functional' },
+  { value: 'fil', labelKey: 'waterPoints.lens.fil', status: 'Functional' },
+  { value: 'ni', labelKey: 'waterPoints.lens.ni', status: 'Non-Functional' },
+  { value: 'nim', labelKey: 'waterPoints.lens.nim', status: 'Non-Functional' },
+  { value: 'nil', labelKey: 'waterPoints.lens.nil', status: 'Non-Functional' },
+]
+
+/** Stored risk band / stored impact flag only - nothing is re-thresholded here. */
+function matchesLens(point: MapPointOut, lens: Lens): boolean {
+  switch (lens) {
+    case 'fh':
+      return riskBandTone(point.risk_band) === 'high'
+    case 'fm':
+      return riskBandTone(point.risk_band) === 'moderate'
+    case 'fl':
+      return riskBandTone(point.risk_band) === 'low'
+    case 'fi':
+    case 'ni':
+      return impactFilterBand(point) === 'high'
+    case 'fim':
+    case 'nim':
+      return impactFilterBand(point) === 'moderate'
+    case 'fil':
+    case 'nil':
+      return impactFilterBand(point) === 'low'
+    default:
+      return true
+  }
+}
+
+type RegisterRow = {
+  id: number
+  masterId: string
+  location: string
+  status: string | null
+}
+
+const WP_DEFAULT_PAGE_SIZE = 10
+const WP_ROW_REM = 3.1
+const WP_HEAD_REM = 3
+
 export function WaterPointsRoute() {
   const { t } = useI18n()
+  const [searchParams] = useSearchParams()
   const { page, setPage } = usePageParam()
-  const [filters, setFilters] = useState<RegisterFilters>(EMPTY_FILTERS)
+  const [lens, setLens] = useState<Lens>('all')
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  // A searched master ID: the table then shows only that water point.
+  const [foundId, setFoundId] = useState<number | null>(null)
+  const [searchMissed, setSearchMissed] = useState(false)
+  const foundQuery = useWaterPointQuery(foundId)
+  const handleResolve = useCallback((id: number | null) => {
+    setFoundId(id)
+    setSearchMissed(false)
+  }, [])
+  const handleNotFound = useCallback(() => {
+    setFoundId(null)
+    setSearchMissed(true)
+  }, [])
+  const { ref: areaRef, height: areaHeight } = useElementSize<HTMLDivElement>()
 
-  const query = useWaterPointListQuery({
-    page,
-    page_size: PAGE_SIZE,
-    observed_status: filters.status,
-    nbs_region: filters.region,
-    nbs_district: filters.district,
-    nbs_ward: filters.ward,
-  })
+  const region = searchParams.get('region')
+  const district = searchParams.get('district')
+  const ward = searchParams.get('ward')
 
-  function applyFilters(next: RegisterFilters) {
-    setFilters(next)
+  // The location filter lives in the shell's controls bubble (URL parameters).
+  const scopeKey = `${region ?? ''}|${district ?? ''}|${ward ?? ''}`
+  const [lastScopeKey, setLastScopeKey] = useState(scopeKey)
+  if (scopeKey !== lastScopeKey) {
+    setLastScopeKey(scopeKey)
     setPage(1)
   }
 
-  return (
-    <SectionPage
-      titleKey="page.waterPoints.title"
-      descriptionKey="page.waterPoints.body"
-      eyebrowKey="page.waterPoints.eyebrow"
-      sourceNote={t('data.source')}
-      toolbar={<RegisterFilterBar value={filters} onChange={applyFilters} />}
-    >
-      <div className="space-y-5">
-        <MasterIdSearch onResolve={setSelectedId} className="max-w-xl" />
+  // Ask for exactly as many rows as the available height can show.
+  const [pageSize, setPageSize] = useState(WP_DEFAULT_PAGE_SIZE)
+  useEffect(() => {
+    if (areaHeight === 0 || !window.matchMedia('(min-width: 64rem)').matches) {
+      return
+    }
+    const root = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const rows = Math.floor((areaHeight - WP_HEAD_REM * root) / (WP_ROW_REM * root))
+    setPageSize(Math.min(Math.max(rows, 4), 25))
+  }, [areaHeight])
 
-        {query.isPending ? (
+  const focus = FOCUS_LENSES.find((entry) => entry.value === lens) ?? null
+  const statusFilter = lens.startsWith('status:') ? lens.slice('status:'.length) : null
+
+  // Plain register browsing (all / one observed status): real server paging.
+  const listQuery = useWaterPointListQuery({
+    page,
+    page_size: pageSize,
+    observed_status: statusFilter,
+    nbs_region: region,
+    nbs_district: district,
+    nbs_ward: ward,
+  })
+  // Risk / impact lenses read stored map fields, so they use the map estate
+  // for the chosen condition and filter it by the stored band or flag.
+  const lensQuery = useProgressiveMapPoints(
+    focus === null
+      ? {}
+      : { observed_status: focus.status, nbs_region: region, nbs_district: district, nbs_ward: ward },
+    { enabled: focus !== null },
+  )
+
+  const locationOf = (parts: (string | null)[]) =>
+    parts.filter((part): part is string => part !== null && part.length > 0).join(' · ')
+
+  let rows: RegisterRow[] = []
+  let total = 0
+  let totalPages = 1
+  let pending = false
+  let failed: unknown = null
+  let retry: () => void = () => undefined
+
+  if (foundId !== null || searchMissed) {
+    pending = foundId !== null && foundQuery.isPending
+    failed = foundQuery.isError ? foundQuery.error : null
+    retry = () => void foundQuery.refetch()
+    if (foundQuery.data !== undefined && foundId !== null) {
+      const point = foundQuery.data
+      total = 1
+      rows = [
+        {
+          id: point.id,
+          masterId: point.master_id,
+          location: locationOf([point.nbs_region, point.nbs_district, point.nbs_ward]),
+          status: point.observed_status,
+        },
+      ]
+    }
+  } else if (focus === null) {
+    pending = listQuery.isPending
+    failed = listQuery.isError ? listQuery.error : null
+    retry = () => void listQuery.refetch()
+    if (listQuery.data !== undefined) {
+      total = listQuery.data.total
+      totalPages = listQuery.data.total_pages
+      rows = listQuery.data.items.map((point) => ({
+        id: point.id,
+        masterId: point.master_id,
+        location: locationOf([point.nbs_region, point.nbs_district, point.nbs_ward]),
+        status: point.observed_status,
+      }))
+    }
+  } else {
+    pending = lensQuery.isPending
+    failed = lensQuery.isError ? lensQuery.error : null
+    retry = () => void lensQuery.refetch()
+    if (lensQuery.data !== undefined) {
+      const matched = lensQuery.data.items.filter((point) => matchesLens(point, lens))
+      total = matched.length
+      totalPages = Math.max(Math.ceil(matched.length / pageSize), 1)
+      const start = (Math.min(page, totalPages) - 1) * pageSize
+      rows = matched.slice(start, start + pageSize).map((point) => ({
+        id: point.id,
+        masterId: point.master_id,
+        location: locationOf([point.nbs_region, point.nbs_district, point.nbs_ward]),
+        status: point.observed_status,
+      }))
+    }
+  }
+  const currentPage = Math.min(page, totalPages)
+
+  return (
+    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-5.5rem)] lg:min-h-[28rem]">
+      <MasterIdSearch
+        pill
+        onResolve={handleResolve}
+        onNotFound={handleNotFound} className="mx-auto w-full max-w-xl space-y-1"
+      />
+
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div>
+          <h1
+            id="page-title"
+            tabIndex={-1}
+            className="font-serif text-mg-title-lg font-semibold text-foreground"
+          >
+            {t('page.waterPoints.title')}
+          </h1>
+          <p className="text-mg-body-sm text-muted-foreground">{t('page.waterPoints.body')}</p>
+        </div>
+        <label className="flex flex-col gap-1 text-mg-caption font-semibold text-muted-foreground">
+          {t('data.column.observedStatus')}
+          <select
+            value={lens}
+            onChange={(event) => {
+              setLens(event.target.value as Lens)
+              setPage(1)
+            }}
+            className="mg-glass mg-glass-static h-10 min-w-[16rem] !rounded-xl px-3 text-mg-body-sm font-medium text-foreground"
+          >
+            <option value="all">{t('waterPoints.lens.all')}</option>
+            <optgroup label={t('data.column.observedStatus')}>
+              {OBSERVED_STATUS_VALUES.map((status) => (
+                <option key={status} value={`status:${status}`}>
+                  {observedStatusLabel(status, t)}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label={t('waterPoints.lens.group')}>
+              {FOCUS_LENSES.map((entry) => (
+                <option key={entry.value} value={entry.value}>
+                  {t(entry.labelKey)}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+        </label>
+      </div>
+
+      <div ref={areaRef} className="min-h-0 flex-1">
+        {pending && rows.length === 0 ? (
           <LoadingState label={t('data.loading')} />
-        ) : query.isError ? (
-          <FailureState error={query.error} onRetry={() => void query.refetch()} />
-        ) : query.data.items.length === 0 ? (
+        ) : failed !== null && rows.length === 0 ? (
+          <FailureState error={failed} onRetry={retry} />
+        ) : rows.length === 0 ? (
           <EmptyState />
         ) : (
-          <>
-            <DataTable
-              caption={t('waterPoints.table.caption')}
-              columns={[
-                { label: t('data.column.masterId') },
-                { label: t('data.column.wpdxId'), className: 'hidden lg:table-cell' },
-                { label: t('data.column.region'), className: 'hidden sm:table-cell' },
-                { label: t('data.column.district'), className: 'hidden lg:table-cell' },
-                { label: t('data.column.ward'), className: 'hidden xl:table-cell' },
-                { label: t('data.column.observedStatus') },
-                { label: t('data.column.surveyDate'), className: 'hidden xl:table-cell' },
-                { label: t('detail.open'), className: 'text-end' },
-              ]}
-            >
-              {query.data.items.map((point) => (
-                <DataRow key={point.id} selected={point.id === selectedId}>
-                  <DataCell className="mg-figure font-medium">{point.master_id}</DataCell>
-                  <DataCell className="mg-figure hidden text-muted-foreground lg:table-cell">
-                    {point.wpdx_id}
-                  </DataCell>
-                  <DataCell className="hidden sm:table-cell">
-                    {point.nbs_region ?? t('data.notRecorded')}
-                  </DataCell>
-                  <DataCell className="hidden text-muted-foreground lg:table-cell">
-                    {point.nbs_district ?? t('data.notRecorded')}
-                  </DataCell>
-                  <DataCell className="hidden text-muted-foreground xl:table-cell">
-                    {point.nbs_ward ?? t('data.notRecorded')}
-                  </DataCell>
-                  <DataCell>
-                    <ObservedStatusChip value={point.observed_status} />
-                  </DataCell>
-                  <DataCell className="mg-figure hidden text-muted-foreground xl:table-cell">
-                    {formatDate(point.survey_date)}
-                  </DataCell>
-                  <DataCell className="text-end">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      aria-label={t('detail.openFor', { masterId: point.master_id })}
-                      onClick={() => {
-                        setSelectedId(point.id)
-                      }}
-                    >
-                      {t('detail.open')}
-                    </Button>
-                  </DataCell>
-                </DataRow>
-              ))}
-            </DataTable>
+          <DataTable
+            className="max-h-full lg:overflow-y-hidden"
+            captionHidden
+            caption={t('waterPoints.table.caption')}
+            columns={[
+              { label: t('data.column.masterId'), className: 'whitespace-nowrap' },
+              { label: t('priority.column.location'), className: 'hidden whitespace-nowrap sm:table-cell' },
+              { label: t('data.column.observedStatus'), className: 'whitespace-nowrap' },
+              { label: t('detail.open'), className: 'whitespace-nowrap text-end' },
+            ]}
+          >
+            {rows.map((row) => (
+              <DataRow key={row.id} selected={row.id === selectedId}>
+                <DataCell className="mg-figure whitespace-nowrap font-medium">{row.masterId}</DataCell>
+                <DataCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
+                  {row.location.length > 0 ? row.location : t('data.notRecorded')}
+                </DataCell>
+                <DataCell className="whitespace-nowrap">
+                  <ObservedStatusChip value={row.status} />
+                </DataCell>
+                <DataCell className="whitespace-nowrap text-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    aria-label={t('detail.openFor', { masterId: row.masterId })}
+                    onClick={() => {
+                      setSelectedId(row.id)
+                    }}
+                  >
+                    {t('detail.open')}
+                  </Button>
+                </DataCell>
+              </DataRow>
+            ))}
+          </DataTable>
+        )}
+      </div>
 
+      <div className="flex h-[4.5rem] shrink-0 items-end overflow-hidden">
+        {rows.length > 0 && foundId === null ? (
+          <div className="w-full">
             <Pagination
-              page={query.data.page}
-              totalPages={query.data.total_pages}
-              total={query.data.total}
-              isFetching={query.isFetching}
+              page={currentPage}
+              totalPages={totalPages}
+              total={total}
+              isFetching={focus === null ? listQuery.isFetching : lensQuery.isFetching}
               onPageChange={setPage}
             />
-          </>
-        )}
+          </div>
+        ) : null}
       </div>
 
       <InspectionDrawer
@@ -147,7 +340,7 @@ export function WaterPointsRoute() {
           setSelectedId(null)
         }}
       />
-    </SectionPage>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import { SlidersHorizontal, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useDecisionMapFilterState } from '@/app/providers/decision-map-filter-provider'
 import { useI18n } from '@/app/providers/locale-provider'
@@ -187,7 +187,24 @@ export function DecisionMapRoute() {
     })
   }
 
-  const dockedPanel = wide && selectedId !== null
+  const [maximized, setMaximized] = useState(false)
+  useEffect(() => {
+    if (!maximized) {
+      return
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMaximized(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [maximized])
+
+  // While maximised the map owns the whole screen, so details open in the sheet.
+  const dockedPanel = wide && selectedId !== null && !maximized
 
   return (
     <SectionPage
@@ -255,7 +272,13 @@ export function DecisionMapRoute() {
         </div>
 
         <div className="flex min-h-0 items-start gap-3">
-          <div className="min-w-0 flex-1">
+          <div
+            className={
+              maximized
+                ? 'fixed inset-0 z-50 bg-background p-2 sm:p-3'
+                : 'min-w-0 flex-1'
+            }
+          >
             {query.isPending ? (
               <LoadingState label={t('map.loading')} />
             ) : query.isError ? (
@@ -264,7 +287,11 @@ export function DecisionMapRoute() {
               <EmptyState body={t('overview.list.empty')} />
             ) : (
               <WaterPointMap
-                className={MAP_HEIGHT}
+                className={maximized ? 'h-full' : MAP_HEIGHT}
+                maximized={maximized}
+                onToggleMaximize={() => {
+                  setMaximized((current) => !current)
+                }}
                 points={visiblePoints}
                 total={visiblePoints.length}
                 filterLabel={filterLabel}
@@ -283,7 +310,7 @@ export function DecisionMapRoute() {
           {dockedPanel ? (
             <aside
               aria-label={t('map.selected.title')}
-              className={`w-[24rem] shrink-0 overflow-y-auto overscroll-contain rounded-panel border border-border bg-card ${MAP_HEIGHT}`}
+              className={`w-[24rem] shrink-0 overflow-y-auto overscroll-contain mg-glass mg-glass-static ${MAP_HEIGHT}`}
             >
               <div className="sticky top-0 z-10 flex justify-end border-b border-border bg-card px-2 py-1">
                 <Button
@@ -308,7 +335,7 @@ export function DecisionMapRoute() {
       </div>
 
       {/* Below `lg` the details open in a bottom sheet instead. */}
-      {wide ? null : (
+      {wide && !maximized ? null : (
         <InspectionDrawer
           id={selectedId}
           mapPoint={selectedMapPoint}

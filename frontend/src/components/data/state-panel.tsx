@@ -42,7 +42,7 @@ export function StatePanel({
     <div
       role={role}
       aria-live={ariaLive}
-      className={cn('rounded-md border bg-card p-5 sm:p-6', toneClasses[tone], className)}
+      className={cn('mg-glass mg-glass-static border p-5 sm:p-6', toneClasses[tone], className)}
     >
       <div className="flex items-start gap-3">
         <span

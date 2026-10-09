@@ -1,7 +1,7 @@
 ﻿from fastapi import FastAPI
 
 from app.core.config import settings
-from app.api.routes import priority_router, results_router, water_points_router
+from app.api.routes import auth_router, priority_router, results_router, water_points_router
 from app.core.exception_handlers import install_exception_handlers
 
 
@@ -17,6 +17,7 @@ install_exception_handlers(app)
 app.include_router(water_points_router, prefix=settings.api_prefix)
 app.include_router(results_router, prefix=settings.api_prefix)
 app.include_router(priority_router, prefix=settings.api_prefix)
+app.include_router(auth_router, prefix=settings.api_prefix)
 
 
 @app.get(f"{settings.api_prefix}/health", tags=["health"])

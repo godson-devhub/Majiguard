@@ -30,19 +30,19 @@ export function NavigationLink({ item, compact, onNavigate }: NavigationLinkProp
       to={item.path}
       onClick={onNavigate}
       className={cn(
-        'group relative flex min-h-11 items-center rounded-md text-mg-body-sm transition-colors duration-200',
+        'group relative flex min-h-12 items-center rounded-lg text-mg-body transition-colors duration-200',
         compact ? 'justify-center px-2' : 'gap-3 px-3',
         isActive
           ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
-          : 'text-sidebar-foreground hover:bg-sidebar-accent/50',
-        compact && isActive && 'ring-1 ring-sidebar-primary ring-inset',
+          : 'text-sidebar-foreground hover:bg-sidebar-accent/20 hover:text-sidebar-foreground',
+        compact && isActive && 'ring-1 ring-white/70 ring-inset',
       )}
     >
       {isActive ? (
         <span
           aria-hidden="true"
           className={cn(
-            'absolute inset-y-1.5 start-0 w-0.5 rounded-full bg-sidebar-primary',
+            'absolute inset-y-1.5 start-0 w-0.5 rounded-full bg-white',
             compact ? 'sr-only' : undefined,
           )}
         />
@@ -50,8 +50,8 @@ export function NavigationLink({ item, compact, onNavigate }: NavigationLinkProp
       <Icon
         aria-hidden="true"
         className={cn(
-          'size-4 shrink-0',
-          isActive ? 'text-sidebar-primary' : 'text-muted-foreground group-hover:text-foreground',
+          'size-5 shrink-0',
+          isActive ? 'text-white' : 'text-sidebar-foreground/80 group-hover:text-sidebar-foreground',
         )}
       />
       <span className={compact ? 'sr-only' : undefined}>{label}</span>

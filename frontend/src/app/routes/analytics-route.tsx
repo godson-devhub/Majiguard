@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import { useI18n } from '@/app/providers/locale-provider'
-import { SectionPage } from '@/app/shell/section-page'
 import { EmptyState, FailureState, LoadingState, ScopeRequiredState } from '@/components/data/data-states'
 import { FilterSelect } from '@/components/data/filter-controls'
 import { formatNumber } from '@/components/data/format'
-import { RegisterFilterBar } from '@/components/data/register-filter-bar'
-import { Badge } from '@/components/ui/badge'
 import { preventivePriorityAllQueryOptions, restorationPriorityAllQueryOptions } from '@/hooks/priority'
 import {
   mapPointsAllQueryOptions,
@@ -27,7 +25,6 @@ import {
   type RiskFilterValue,
 } from '@/lib/analytics-aggregation'
 import { type ConditionFilter } from '@/lib/decision-map-filters'
-import { scopeLabel } from '@/lib/priority-presentation'
 import type { RegisterFilters } from '@/lib/register-reference'
 import { cn } from '@/lib/utils'
 
@@ -232,7 +229,7 @@ function RiskImpactQuadrantGrid({
           <div
             key={cell.key}
             className={cn(
-              'rounded-md border p-4 transition-colors',
+              'rounded-panel border p-4 transition-colors',
               cell.toneClass,
               isTop && 'ring-2 ring-risk-high ring-offset-1 ring-offset-background',
             )}
@@ -337,6 +334,7 @@ function isAreaMetricKey(value: string | null): value is AreaMetricKey {
 export function AnalyticsRoute() {
   const { t } = useI18n()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [active, setActive] = useState<string>(SECTION_INDEX[0]?.id ?? '')
 
   const locationFilters: RegisterFilters = {
     region: searchParams.get('region'),
@@ -394,9 +392,6 @@ export function AnalyticsRoute() {
     return params
   }
 
-  function setLocationFilters(next: RegisterFilters) {
-    setSearchParams(buildParams({ location: next }), { replace: true })
-  }
   function setCondition(next: ConditionFilter) {
     setSearchParams(buildParams({ condition: next }), { replace: true })
   }
@@ -434,20 +429,24 @@ export function AnalyticsRoute() {
   // (see the `hasRegion` branches below), so there is no reason to keep
   // firing its ~70 count requests while a Region-scoped view is loading.
   const nationalConditionTotals = useRegionConditionGroupTotals(!hasRegion)
-  const preventiveAll = useQuery(
-    preventivePriorityAllQueryOptions({
+  const needsPriorityPools =
+    active === 'chart-pathway-heading' || active === 'chart-ranking-heading'
+  const preventiveAll = useQuery({
+    ...preventivePriorityAllQueryOptions({
       nbs_region: locationFilters.region,
       nbs_district: locationFilters.district,
       nbs_ward: locationFilters.ward,
     }),
-  )
-  const restorationAll = useQuery(
-    restorationPriorityAllQueryOptions({
+    enabled: needsPriorityPools,
+  })
+  const restorationAll = useQuery({
+    ...restorationPriorityAllQueryOptions({
       nbs_region: locationFilters.region,
       nbs_district: locationFilters.district,
       nbs_ward: locationFilters.ward,
     }),
-  )
+    enabled: needsPriorityPools,
+  })
 
   // --- Row-level data, only ever fetched once a Region narrows the scope ---
   // (see `mapPointsAllQueryOptions`'s own docstring for why its page size is
@@ -524,36 +523,24 @@ export function AnalyticsRoute() {
           : nationalConditionTotals.some((row) => row.isPending)
 
   const topRanked = rankingRows[0] ?? null
-  const scopeBadge = scopeLabel(locationFilters, t)
   const levelLabel = t(level === 'region' ? 'analytics.level.region' : level === 'district' ? 'analytics.level.district' : 'analytics.level.ward')
 
   return (
-    <SectionPage
-      titleKey="page.analytics.title"
-      descriptionKey="page.analytics.body"
-      eyebrowKey="page.analytics.eyebrow"
-      sourceNote={t('data.source')}
-    >
-      <div className="space-y-10">
-        {/* Filters: Scope, then the lenses that refine every chart */}
-        <section aria-labelledby="analytics-filters-heading" className="space-y-3">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h2
-              id="analytics-filters-heading"
-              className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground"
-            >
-              {t('overview.filters.label')}
-            </h2>
-            <Badge variant="outline" className="mg-figure">
-              {scopeBadge}
-            </Badge>
-          </div>
-          <RegisterFilterBar value={locationFilters} onChange={setLocationFilters} showStatus={false} />
+    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-5.5rem)] lg:min-h-[28rem]">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div>
+          <h1
+            id="page-title"
+            tabIndex={-1}
+            className="font-serif text-mg-title-lg font-semibold text-foreground"
+          >
+            {t('page.analytics.title')}
+          </h1>
+          <p className="text-mg-body-sm text-muted-foreground">{t('page.analytics.body')}</p>
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <p className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('filters.refine')}
-            </p>
+      <div className="min-w-0">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <FilterSelect
                 label={t('analytics.condition.label')}
@@ -601,41 +588,38 @@ export function AnalyticsRoute() {
                 }))}
               />
             </div>
-          </div>
+      </div>
 
-          {!hasRegion ? (
-            <p className="max-w-[72ch] text-mg-caption text-muted-foreground">
-              {t('analytics.scope.nationalNotice')}
-            </p>
-          ) : null}
-        </section>
+      <div role="tablist" aria-label={t('analytics.index.label')} className="flex flex-wrap gap-1.5">
+        {SECTION_INDEX.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="tab"
+            aria-selected={active === entry.id}
+            onClick={() => {
+              setActive(entry.id)
+            }}
+            className={cn(
+              'rounded-full border px-3 py-1 text-mg-caption font-semibold transition-all duration-200',
+              active === entry.id
+                ? 'border-primary bg-primary text-primary-foreground shadow-mg-2'
+                : 'border-border bg-card/60 text-foreground backdrop-blur-sm hover:-translate-y-0.5 hover:bg-accent',
+            )}
+          >
+            {t(entry.titleKey)}
+          </button>
+        ))}
+      </div>
 
-        {/* On this page */}
-        <nav aria-label={t('analytics.index.label')} className="-mt-4">
-          <p className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
-            {t('analytics.index.label')}
-          </p>
-          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-mg-body-sm">
-            {SECTION_INDEX.map((entry) => (
-              <li key={entry.id}>
-                <a href={`#${entry.id}`} className="text-primary underline-offset-2 hover:underline">
-                  {t(entry.titleKey)}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {/* Chart 1: Condition by location */}
-        <section aria-labelledby="chart-condition-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-condition-heading" hidden={active !== 'chart-condition-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-condition-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.condition.title')} — {levelLabel}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.condition.body')}</p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.condition.measures') })}
-            </p>
           </div>
           {conditionPending ? (
             <LoadingState label={t('data.loading')} />
@@ -648,16 +632,13 @@ export function AnalyticsRoute() {
             title/question; the body is a "select a Region" prompt until
             `hasRegion` makes the scoped, row-level fetch safe (see the
             module docstring above for why national scope cannot). */}
-        <section aria-labelledby="chart-risk-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-risk-heading" hidden={active !== 'chart-risk-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-risk-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.risk.title')}
               {hasRegion ? ` — ${levelLabel}` : ''}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.risk.body')}</p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.risk.measures') })}
-            </p>
           </div>
           {!hasRegion ? (
             <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
@@ -678,16 +659,13 @@ export function AnalyticsRoute() {
           )}
         </section>
 
-        <section aria-labelledby="chart-impact-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-impact-heading" hidden={active !== 'chart-impact-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-impact-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.impact.title')}
               {hasRegion ? ` — ${levelLabel}` : ''}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.impact.body')}</p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.impact.measures') })}
-            </p>
           </div>
           {!hasRegion ? (
             <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
@@ -708,15 +686,12 @@ export function AnalyticsRoute() {
           )}
         </section>
 
-        <section aria-labelledby="chart-quadrant-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-quadrant-heading" hidden={active !== 'chart-quadrant-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-quadrant-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.quadrant.title')}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.quadrant.body')}</p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.quadrant.measures') })}
-            </p>
           </div>
           {!hasRegion ? (
             <ScopeRequiredState body={t('analytics.scope.selectRegionPrompt')} />
@@ -735,7 +710,7 @@ export function AnalyticsRoute() {
           )}
         </section>
 
-        <section aria-labelledby="chart-functional-risk-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-functional-risk-heading" hidden={active !== 'chart-functional-risk-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-functional-risk-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.functionalRisk.title')}
@@ -743,9 +718,6 @@ export function AnalyticsRoute() {
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">
               {t('analytics.chart.functionalRisk.body')}
-            </p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.functionalRisk.measures') })}
             </p>
           </div>
           {!hasRegion ? (
@@ -767,10 +739,7 @@ export function AnalyticsRoute() {
           )}
         </section>
 
-        <section
-          aria-labelledby="chart-high-impact-nonfunctional-heading"
-          className="space-y-3 border-t border-border pt-8"
-        >
+        <section aria-labelledby="chart-high-impact-nonfunctional-heading" hidden={active !== 'chart-high-impact-nonfunctional-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-high-impact-nonfunctional-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.highImpactNonFunctional.title')}
@@ -778,9 +747,6 @@ export function AnalyticsRoute() {
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">
               {t('analytics.chart.highImpactNonFunctional.body')}
-            </p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.highImpactNonFunctional.measures') })}
             </p>
           </div>
           {!hasRegion ? (
@@ -803,15 +769,12 @@ export function AnalyticsRoute() {
         </section>
 
         {/* Chart 7: Preventive vs Restoration */}
-        <section aria-labelledby="chart-pathway-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-pathway-heading" hidden={active !== 'chart-pathway-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div>
             <h2 id="chart-pathway-heading" className="text-mg-title-md font-semibold text-foreground">
               {t('analytics.chart.pathway.title')} — {levelLabel}
             </h2>
             <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.pathway.body')}</p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.pathway.measures') })}
-            </p>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             {showPreventiveSide ? (
@@ -864,16 +827,13 @@ export function AnalyticsRoute() {
         </section>
 
         {/* Chart 8: Location ranking */}
-        <section aria-labelledby="chart-ranking-heading" className="space-y-3 border-t border-border pt-8">
+        <section aria-labelledby="chart-ranking-heading" hidden={active !== 'chart-ranking-heading'} className="mg-glass mg-glass-static space-y-3 p-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 id="chart-ranking-heading" className="text-mg-title-md font-semibold text-foreground">
                 {t('analytics.chart.ranking.title')} — {levelLabel}
               </h2>
               <p className="max-w-[68ch] text-mg-body-sm text-muted-foreground">{t('analytics.chart.ranking.body')}</p>
-            <p className="mt-1 max-w-[68ch] text-mg-caption text-muted-foreground">
-              {t('analytics.measures', { text: t('analytics.chart.ranking.measures') })}
-            </p>
             </div>
             <FilterSelect
               className="w-full sm:w-72"
@@ -915,6 +875,6 @@ export function AnalyticsRoute() {
           </p>
         ) : null}
       </div>
-    </SectionPage>
+    </div>
   )
 }

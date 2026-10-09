@@ -19,6 +19,13 @@ export function validatePassword(value: string): MessageKey | undefined {
   return value === '' ? 'auth.error.passwordRequired' : undefined
 }
 
+export function validateNewPassword(value: string): MessageKey | undefined {
+  if (value === '') {
+    return 'auth.error.passwordRequired'
+  }
+  return value.length < 8 ? 'auth.error.passwordShort' : undefined
+}
+
 export function validateConfirmation(
   password: string,
   confirmation: string,

@@ -16,11 +16,8 @@ import { formatNumber, formatScorePercent } from '@/components/data/format'
 import { KpiCard } from '@/components/data/kpi-card'
 import { ObservedStatusChip } from '@/components/data/observed-status'
 import { RankBadge } from '@/components/data/rank-badge'
-import { RegisterFilterBar } from '@/components/data/register-filter-bar'
 import { OverviewSpatialSummary } from '@/components/overview/overview-spatial-summary'
 import { SemanticChip } from '@/components/status/semantic-chip'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { usePreventivePriorityQuery, useRestorationPriorityQuery } from '@/hooks/priority'
 import { FUNCTIONAL_STATUS, NON_FUNCTIONAL_STATUS, useEstateKpis } from '@/hooks/estate-kpis'
 import type { MessageKey } from '@/i18n/messages'
@@ -31,218 +28,273 @@ import {
   priorityHref,
   riskBandTone,
   riskRowAccent,
-  scopeLabel,
 } from '@/lib/priority-presentation'
 import type { RegisterFilters } from '@/lib/register-reference'
 import { observedStatusLabel } from '@/lib/status-labels'
 import { cn } from '@/lib/utils'
 import type { MapPointOut, PriorityPageMeta } from '@/types/api'
 
-/** Both pathways show the same top-8, so the two "Where should we act
+/** Both pathways show the same top-1, so the two "Where should we act
  * first?" columns stay visually and structurally balanced - neither pool's
  * size (preventive's is small, restoration's is much larger) changes how
  * many of its own top-ranked rows are shown here. */
-const PREVENTIVE_TOP_N = 8
-const RESTORATION_TOP_N = 8
+const PREVENTIVE_TOP_N = 1
+const RESTORATION_TOP_N = 1
 
 /** One shared row grid for the top lists, so the header row lines up. */
 const LIST_ROW_GRID =
-  'grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-x-3 sm:grid-cols-[1.75rem_6.5rem_minmax(0,1fr)_auto_3.5rem]'
+  'grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-x-2 sm:grid-cols-[1.75rem_5.5rem_minmax(0,1fr)_7rem_3rem]'
 
 /**
- * One decision pathway's summary: the backend's own scoped total (the
- * paginated response's `total`, already filtered by whatever Region/
- * District/Ward is selected - never a separate unscoped count) and the
- * single highest-ranked eligible point. Neither pathway's score or rank is
- * ever combined with the other's.
+ * One pathway as a single "problem to solve now" card: an alert-toned header
+ * with the backend's own scoped eligible count (the paginated response's
+ * `total`, already filtered by the active Region/District/Ward), the top-8
+ * rows exactly as the backend ranked them, and a link to the full worklist.
+ * Ordering and scores are verbatim - never re-sorted or combined across the
+ * two pathways.
  */
-function DecisionCard({
+function PriorityCard({
   variant,
-  listQuery,
+  query,
 }: {
   variant: 'preventive' | 'restoration'
-  listQuery: UseQueryResult<PriorityPageMeta>
+  query: UseQueryResult<PriorityPageMeta>
 }) {
   const { t } = useI18n()
   const isPreventive = variant === 'preventive'
   const titleKey: MessageKey = isPreventive ? 'overview.preventive.title' : 'overview.restoration.title'
-  const descriptionKey: MessageKey = isPreventive
-    ? 'overview.preventive.description'
-    : 'overview.restoration.description'
-  const countKey: MessageKey = isPreventive ? 'overview.preventive.count' : 'overview.restoration.count'
   const ctaKey: MessageKey = isPreventive ? 'overview.preventive.cta' : 'overview.restoration.cta'
-
-  const count = listQuery.isSuccess ? listQuery.data.total : null
-  const highest = listQuery.isSuccess ? (listQuery.data.items[0] ?? null) : null
+  const headingId = `priority-${variant}-title`
+  const Icon = isPreventive ? TriangleAlert : CircleSlash
+  const count = query.isSuccess ? query.data.total : null
 
   return (
-    <section
-      aria-labelledby={`decision-${variant}-title`}
-      className="flex flex-col rounded-panel border border-border bg-card"
-    >
-      <div className="space-y-1 border-b border-border px-5 py-4">
-        <h3 id={`decision-${variant}-title`} className="text-mg-title-md font-semibold text-foreground">
-          {t(titleKey)}
-        </h3>
-        <p className="text-mg-body-sm text-muted-foreground">{t(descriptionKey)}</p>
-      </div>
-
-      <div className="flex-1 space-y-4 px-5 py-4">
-        <div>
-          {listQuery.isPending ? (
+    <section aria-labelledby={headingId} className="mg-glass flex flex-col overflow-hidden">
+      <div
+        className={cn(
+          'relative flex items-center gap-3 px-4 py-1.5',
+          isPreventive
+            ? 'bg-gradient-to-br from-amber-500/20 via-amber-500/5 to-transparent'
+            : 'bg-gradient-to-br from-red-500/20 via-red-500/5 to-transparent',
+        )}
+      >
+        <span
+          className={cn(
+            'inline-flex size-8 shrink-0 items-center justify-center rounded-lg shadow-mg-2',
+            isPreventive ? 'bg-amber-500 text-white' : 'bg-red-600 text-white',
+          )}
+        >
+          <Icon aria-hidden="true" className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 id={headingId} className="text-mg-title-sm text-foreground">
+            {t(titleKey)}
+          </h3>
+        </div>
+        <div className="text-end">
+          {query.isPending ? (
             <div role="status" aria-live="polite">
               <span className="sr-only">{t('state.loadingSection')}</span>
-              <div aria-hidden="true" className="h-9 w-24 animate-pulse rounded-control bg-muted" />
+              <div aria-hidden="true" className="h-10 w-20 animate-pulse rounded-control bg-muted" />
             </div>
-          ) : listQuery.isError ? (
-            <p className="text-mg-title-sm font-semibold text-muted-foreground">
-              {t('state.unavailable')}
-            </p>
+          ) : query.isError ? (
+            <p className="text-mg-body-sm font-semibold text-muted-foreground">{t('state.unavailable')}</p>
           ) : (
-            <p className="mg-figure text-mg-display font-semibold text-foreground">
-              {formatNumber(count)}
-            </p>
+            <>
+              <p
+                className={cn(
+                  'mg-figure font-serif text-2xl leading-none font-semibold',
+                  isPreventive ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400',
+                )}
+              >
+                {formatNumber(count)}
+              </p>
+            </>
           )}
-          {listQuery.isSuccess && count !== null ? (
-            <p className="mt-1 text-mg-caption text-muted-foreground">
-              {t(countKey, { count: formatNumber(count) })}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="rounded-control border border-border bg-surface-subtle p-3">
-          <p className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground">
-            {t('overview.highestRanked')}
-          </p>
-          <div className="mt-2">
-            {listQuery.isPending ? (
-              <LoadingState label={t('data.loading')} />
-            ) : listQuery.isError ? (
-              <FailureState error={listQuery.error} onRetry={() => void listQuery.refetch()} />
-            ) : highest === null ? (
-              <p className="text-mg-caption text-muted-foreground">{t('overview.noEligible')}</p>
-            ) : (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                <RankBadge rank={highest.rank} />
-                <span className="mg-figure text-mg-body-sm font-semibold text-foreground">
-                  {highest.master_id}
-                </span>
-                <span className="min-w-0 text-mg-caption text-muted-foreground">
-                  {formatLocation(highest)}
-                </span>
-                <span className="ms-auto flex flex-col items-end leading-tight">
-                  <span className="text-mg-caption text-muted-foreground">
-                    {t('priority.column.priority')}
-                  </span>
-                  <span className="mg-figure text-mg-body-sm font-semibold text-foreground">
-                    {formatScorePercent(highest.priority_score)}
-                  </span>
-                </span>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
-      <div className="border-t border-border px-5 py-3">
-        <Button className="w-full sm:w-auto" nativeButton={false} render={<Link to={priorityHref(variant)} />}>
+      <div className="flex-1 px-2">
+        {query.isPending ? (
+          <div className="p-4">
+            <LoadingState label={t('data.loading')} />
+          </div>
+        ) : query.isError ? (
+          <div className="p-4">
+            <FailureState error={query.error} onRetry={() => void query.refetch()} />
+          </div>
+        ) : query.data.items.length === 0 ? (
+          <div className="p-4">
+            <EmptyState body={t('overview.list.empty')} />
+          </div>
+        ) : (
+          <>
+            <div
+              aria-hidden="true"
+              className={cn(
+                LIST_ROW_GRID,
+                'px-3 py-0.5 text-mg-caption font-medium text-muted-foreground',
+              )}
+            >
+              <span>{t('priority.column.rank')}</span>
+              <span className="hidden sm:block">{t('priority.column.waterPoint')}</span>
+              <span>{t('priority.column.location')}</span>
+              <span className="hidden sm:block">{t('priority.column.condition')}</span>
+              <span className="text-end">{t('priority.column.priority')}</span>
+            </div>
+            <ul className="divide-y divide-border/60">
+              {query.data.items.map((item) => {
+                const tone = isPreventive
+                  ? riskBandTone(item.risk_band)
+                  : mapImpactBand(item.priority_score ?? 0)
+                const accent = isPreventive ? riskRowAccent(tone) : impactRowAccent(tone ?? 'low')
+                return (
+                  <li key={item.water_point_id}>
+                    <Link
+                      to={priorityHref(variant)}
+                      className={cn(
+                        LIST_ROW_GRID,
+                        'rounded-lg px-3 py-1 outline-none transition-colors hover:bg-accent/70 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                        accent,
+                      )}
+                    >
+                      <RankBadge rank={item.rank} />
+                      <span className="mg-figure hidden truncate text-mg-caption font-semibold text-foreground sm:block">
+                        {item.master_id}
+                      </span>
+                      <span className="min-w-0 truncate text-mg-caption text-muted-foreground">
+                        <span className="mg-figure font-medium text-foreground sm:hidden">
+                          {item.master_id}
+                        </span>
+                        <span className="sm:hidden"> · </span>
+                        {formatLocation(item)}
+                      </span>
+                      <span className="hidden min-w-0 overflow-hidden whitespace-nowrap text-mg-caption sm:block">
+                        {isPreventive ? (
+                          riskBandTone(item.risk_band) !== null ? (
+                            <SemanticChip kind="risk" tone={riskBandTone(item.risk_band) ?? 'low'} />
+                          ) : null
+                        ) : (
+                          <ObservedStatusChip value={item.observed_status} />
+                        )}
+                      </span>
+                      <span className="mg-figure text-end text-mg-caption font-semibold text-foreground">
+                        {formatScorePercent(item.priority_score)}
+                      </span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </>
+        )}
+      </div>
+
+      <div className="border-t border-border/60 px-4 py-1">
+        <Link
+          to={priorityHref(variant)}
+          className="group inline-flex items-center gap-1.5 text-mg-body-sm font-semibold text-primary underline-offset-4 hover:underline"
+        >
           {t(ctaKey)}
-          <ArrowRight aria-hidden="true" className="size-4" />
-        </Button>
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+          />
+        </Link>
       </div>
     </section>
   )
 }
 
 /**
- * One pathway's compact ranked list. Rows are real `PriorityItemOut` records,
- * server-paginated and server-filtered at the source (the Region/District/
- * Ward filter is passed straight into the query, never applied client-side).
- * Ordering is exactly the backend's own `rank` field - never re-sorted here.
+ * Functional vs non-functional at a glance: a donut and a legend of the same
+ * backend counts shown in the KPI row (never recomputed). The remainder is
+ * whatever the register records as neither - shown as its own segment so the
+ * three always add up to the register total.
  */
-function TopPriorityList({
-  titleKey,
-  variant,
-  query,
+function ConditionAnalytics({
+  total,
+  functional,
+  nonFunctional,
+  isPending,
 }: {
-  titleKey: MessageKey
-  variant: 'preventive' | 'restoration'
-  query: UseQueryResult<PriorityPageMeta>
+  total: number | null
+  functional: number | null
+  nonFunctional: number | null
+  isPending: boolean
 }) {
   const { t } = useI18n()
-  const headingId = `top-${variant}-heading`
+  const ready = total !== null && functional !== null && nonFunctional !== null && total > 0
+  const other = ready ? Math.max(total - functional - nonFunctional, 0) : 0
+
+  const segments = ready
+    ? [
+        { key: 'functional', label: t('overview.analytics.functional'), value: functional, color: 'var(--status-functional)' },
+        { key: 'nonfunctional', label: t('overview.analytics.nonFunctional'), value: nonFunctional, color: 'var(--status-nonfunctional)' },
+        { key: 'other', label: t('overview.analytics.other'), value: other, color: 'var(--mg-n-300)' },
+      ]
+    : []
+
+  const radius = 52
+  const circumference = 2 * Math.PI * radius
+  let offset = 0
 
   return (
-    <section aria-labelledby={headingId} className="space-y-3">
-      <h2 id={headingId} className="text-mg-title-md font-semibold text-foreground">
-        {t(titleKey)}
-      </h2>
+    <section aria-labelledby="overview-analytics-title" className="mg-glass flex min-h-0 flex-col px-4 pb-3 pt-3">
+      <div className="flex h-9 items-center">
+        <h2 id="overview-analytics-title" className="text-mg-title-md text-foreground">
+          {t('overview.analytics.title')}
+        </h2>
+      </div>
 
-      {query.isPending ? (
-        <LoadingState label={t('data.loading')} />
-      ) : query.isError ? (
-        <FailureState error={query.error} onRetry={() => void query.refetch()} />
-      ) : query.data.items.length === 0 ? (
-        <EmptyState body={t('overview.list.empty')} />
+
+      {isPending ? (
+        <div className="flex flex-1 items-center justify-center py-8">
+          <LoadingState label={t('data.loading')} />
+        </div>
+      ) : !ready ? (
+        <div className="flex-1 pt-4">
+          <EmptyState body={t('overview.list.empty')} />
+        </div>
       ) : (
-        <div className="overflow-hidden rounded-panel border border-border bg-card">
-          <div
-            aria-hidden="true"
-            className={cn(
-              LIST_ROW_GRID,
-              'border-b border-border bg-surface-subtle px-4 py-2 text-mg-caption font-medium text-muted-foreground',
-            )}
-          >
-            <span>{t('priority.column.rank')}</span>
-            <span className="hidden sm:block">{t('priority.column.waterPoint')}</span>
-            <span>{t('priority.column.location')}</span>
-            <span className="hidden sm:block">{t('priority.column.condition')}</span>
-            <span className="text-end">{t('priority.column.priority')}</span>
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 py-2">
+          <div className="relative size-36 shrink-0">
+            <svg viewBox="0 0 128 128" role="img" aria-label={t('overview.analytics.title')} className="size-full -rotate-90">
+              <circle cx="64" cy="64" r={radius} fill="none" stroke="var(--border)" strokeWidth="14" />
+              {segments.map((segment) => {
+                const length = (segment.value / total) * circumference
+                const dash = `${length} ${circumference - length}`
+                const node = (
+                  <circle
+                    key={segment.key}
+                    cx="64"
+                    cy="64"
+                    r={radius}
+                    fill="none"
+                    stroke={segment.color}
+                    strokeWidth="14"
+                    strokeDasharray={dash}
+                    strokeDashoffset={-offset}
+                  />
+                )
+                offset += length
+                return node
+              })}
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="mg-figure font-serif text-2xl font-semibold text-foreground">{formatNumber(total)}</span>
+              <span className="text-mg-caption text-muted-foreground">{t('dashboard.kpi.total')}</span>
+            </div>
           </div>
-          <ul className="divide-y divide-border">
-            {query.data.items.map((item) => {
-              const isPreventive = variant === 'preventive'
-              const tone = isPreventive
-                ? riskBandTone(item.risk_band)
-                : mapImpactBand(item.priority_score ?? 0)
-              const accent = isPreventive ? riskRowAccent(tone) : impactRowAccent(tone ?? 'low')
-              return (
-                <li key={item.water_point_id}>
-                  <Link
-                    to={priorityHref(variant)}
-                    className={cn(
-                      LIST_ROW_GRID,
-                      'px-4 py-3 outline-none transition-colors hover:bg-accent/60 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
-                      accent,
-                    )}
-                  >
-                    <RankBadge rank={item.rank} />
-                    <span className="mg-figure hidden truncate text-mg-body-sm font-medium text-foreground sm:block">
-                      {item.master_id}
-                    </span>
-                    <span className="min-w-0 truncate text-mg-caption text-muted-foreground">
-                      <span className="mg-figure font-medium text-foreground sm:hidden">
-                        {item.master_id}
-                      </span>
-                      <span className="sm:hidden"> · </span>
-                      {formatLocation(item)}
-                    </span>
-                    <span className="hidden sm:block">
-                      {isPreventive ? (
-                        riskBandTone(item.risk_band) !== null ? (
-                          <SemanticChip kind="risk" tone={riskBandTone(item.risk_band) ?? 'low'} />
-                        ) : null
-                      ) : (
-                        <ObservedStatusChip value={item.observed_status} />
-                      )}
-                    </span>
-                    <span className="mg-figure text-end text-mg-body-sm font-semibold text-foreground">
-                      {formatScorePercent(item.priority_score)}
-                    </span>
-                  </Link>
-                </li>
-              )
-            })}
+
+          <ul className="w-full space-y-1.5">
+            {segments.map((segment) => (
+              <li key={segment.key} className="flex items-center gap-3 text-mg-body-sm">
+                <span aria-hidden="true" className="size-3 shrink-0 rounded-full" style={{ background: segment.color }} />
+                <span className="flex-1 text-muted-foreground">{segment.label}</span>
+                <span className="mg-figure font-semibold text-foreground">{formatNumber(segment.value)}</span>
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -263,7 +315,7 @@ function TopPriorityList({
  */
 export function OverviewRoute() {
   const { t } = useI18n()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const filters: RegisterFilters = {
     region: searchParams.get('region'),
@@ -272,20 +324,6 @@ export function OverviewRoute() {
     ward: searchParams.get('ward'),
   }
   const hasLocationFilter = filters.region !== null
-
-  function setFilters(next: RegisterFilters) {
-    const params = new URLSearchParams()
-    if (next.region !== null) {
-      params.set('region', next.region)
-    }
-    if (next.district) {
-      params.set('district', next.district)
-    }
-    if (next.ward) {
-      params.set('ward', next.ward)
-    }
-    setSearchParams(params, { replace: true })
-  }
 
   // --- Estate-condition KPIs: one shared definition with Analytics (see
   // `useEstateKpis`) so the two screens can never show different numbers for
@@ -355,136 +393,111 @@ export function OverviewRoute() {
       descriptionKey="page.dashboard.body"
       eyebrowKey="page.dashboard.eyebrow"
       sourceNote={t('data.source')}
+      titleOnly
     >
-      <div className="space-y-10">
-        {/* 1. Scope */}
-        <section aria-labelledby="overview-filters-heading" className="space-y-2.5">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className="space-y-4 lg:grid lg:h-[calc(100dvh-5.5rem)] lg:min-h-[34rem] lg:grid-rows-[auto_minmax(0,1fr)_auto] lg:gap-4 lg:space-y-0">
+        {/* 1. Estate condition: two groups side by side on wide screens */}
+        <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+          <section aria-labelledby="kpi-functional-heading" className="space-y-0">
             <h2
-              id="overview-filters-heading"
-              className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground"
+              id="kpi-functional-heading"
+              className="sr-only"
             >
-              {t('overview.filters.label')}
+              {t('overview.kpi.sectionFunctional')}
             </h2>
-            <Badge variant="outline" className="mg-figure">
-              {scopeLabel(filters, t)}
-            </Badge>
-          </div>
-          <RegisterFilterBar value={filters} onChange={setFilters} showStatus={false} />
-        </section>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard
+                compact
+                label={t('dashboard.kpi.total')}
+                icon={Droplets}
+                state={totals.isPending ? 'loading' : totals.isError ? 'error' : 'ready'}
+                value={totals.isSuccess ? formatNumber(totals.data.total) : ''}
+                hint={totalHint}
+              />
+              <KpiCard
+                compact
+                label={observedStatusLabel(FUNCTIONAL_STATUS, t)}
+                icon={CircleCheck}
+                tone="functional"
+                state={statusPending ? 'loading' : 'ready'}
+                value={formatNumber(functionalCount)}
+                hint={t('dashboard.kpi.functionalHint')}
+              />
+              <KpiCard
+                compact
+                label={t('overview.kpi.functionalHighRisk')}
+                icon={TriangleAlert}
+                tone="warning"
+                state={functionalHighRiskPending ? 'loading' : functionalHighRiskError ? 'error' : 'ready'}
+                value={formatNumber(functionalHighRiskCount)}
+                hint={t('overview.kpi.functionalHighRiskHint')}
+              />
+              <KpiCard
+                compact
+                label={t('overview.kpi.highImpact')}
+                icon={Waves}
+                tone="info"
+                state={highImpactPending ? 'loading' : highImpactError ? 'error' : 'ready'}
+                value={formatNumber(highImpactCount)}
+                hint={highImpactHint}
+              />
+            </div>
+          </section>
 
-        {/* 2. Where should we act first? - the two pathways, never combined */}
-        <section aria-labelledby="decision-heading" className="space-y-4">
-          <div className="max-w-[72ch] space-y-1">
-            <h2 id="decision-heading" className="text-mg-title-lg font-semibold text-foreground">
-              {t('overview.decision.heading')}
+          <section aria-labelledby="kpi-nonfunctional-heading" className="space-y-0">
+            <h2
+              id="kpi-nonfunctional-heading"
+              className="sr-only"
+            >
+              {t('overview.kpi.sectionNonFunctional')}
             </h2>
-            <p className="text-mg-body-sm text-muted-foreground">
-              {t('overview.decision.subheading')}
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <DecisionCard variant="preventive" listQuery={preventive} />
-            <DecisionCard variant="restoration" listQuery={restoration} />
-          </div>
-        </section>
-
-        {/* 3. Estate condition */}
-        <div className="space-y-6">
-        <section aria-labelledby="kpi-functional-heading" className="space-y-3">
-          <h2
-            id="kpi-functional-heading"
-            className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground"
-          >
-            {t('overview.kpi.sectionFunctional')}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard
-              label={t('dashboard.kpi.total')}
-              icon={Droplets}
-              state={totals.isPending ? 'loading' : totals.isError ? 'error' : 'ready'}
-              value={totals.isSuccess ? formatNumber(totals.data.total) : ''}
-              hint={totalHint}
-            />
-            <KpiCard
-              label={observedStatusLabel(FUNCTIONAL_STATUS, t)}
-              icon={CircleCheck}
-              tone="functional"
-              state={statusPending ? 'loading' : 'ready'}
-              value={formatNumber(functionalCount)}
-              hint={t('dashboard.kpi.functionalHint')}
-            />
-            <KpiCard
-              label={t('overview.kpi.functionalHighRisk')}
-              icon={TriangleAlert}
-              tone="warning"
-              state={functionalHighRiskPending ? 'loading' : functionalHighRiskError ? 'error' : 'ready'}
-              value={formatNumber(functionalHighRiskCount)}
-              hint={t('overview.kpi.functionalHighRiskHint')}
-            />
-            <KpiCard
-              label={t('overview.kpi.highImpact')}
-              icon={Waves}
-              tone="info"
-              state={highImpactPending ? 'loading' : highImpactError ? 'error' : 'ready'}
-              value={formatNumber(highImpactCount)}
-              hint={highImpactHint}
-            />
-          </div>
-        </section>
-
-        <section aria-labelledby="kpi-nonfunctional-heading" className="space-y-3">
-          <h2
-            id="kpi-nonfunctional-heading"
-            className="text-mg-caption font-semibold uppercase tracking-wider text-muted-foreground"
-          >
-            {t('overview.kpi.sectionNonFunctional')}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <KpiCard
-              label={observedStatusLabel(NON_FUNCTIONAL_STATUS, t)}
-              icon={CircleSlash}
-              tone="nonfunctional"
-              state={statusPending ? 'loading' : 'ready'}
-              value={formatNumber(nonFunctionalCount)}
-              hint={t('dashboard.kpi.nonFunctionalHint')}
-            />
-            <KpiCard
-              label={t('overview.kpi.highImpactNonFunctional')}
-              icon={Waves}
-              tone="info"
-              state={highImpactPending ? 'loading' : highImpactError ? 'error' : 'ready'}
-              value={formatNumber(highImpactNonFunctionalCount)}
-              hint={t('overview.kpi.highImpactNonFunctionalHint')}
-            />
-          </div>
-        </section>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <KpiCard
+                compact
+                label={observedStatusLabel(NON_FUNCTIONAL_STATUS, t)}
+                icon={CircleSlash}
+                tone="nonfunctional"
+                state={statusPending ? 'loading' : 'ready'}
+                value={formatNumber(nonFunctionalCount)}
+                hint={t('dashboard.kpi.nonFunctionalHint')}
+              />
+              <KpiCard
+                compact
+                label={t('overview.kpi.highImpactNonFunctional')}
+                icon={Waves}
+                tone="info"
+                state={highImpactPending ? 'loading' : highImpactError ? 'error' : 'ready'}
+                value={formatNumber(highImpactNonFunctionalCount)}
+                hint={t('overview.kpi.highImpactNonFunctionalHint')}
+              />
+            </div>
+          </section>
         </div>
 
-        {/* 4 & 5. Top priorities, one list per pathway */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <TopPriorityList
-            titleKey="overview.topPreventive.title"
-            variant="preventive"
-            query={preventive}
+        {/* 2. Spatial summary (left) and condition analytics (right) */}
+        <div className="grid gap-4 lg:min-h-0 lg:grid-cols-[2fr_1fr]">
+          <OverviewSpatialSummary
+            points={spatialPoints}
+            total={spatialTotal}
+            isPending={spatialPending}
+            isError={spatialIsError}
+            error={spatialError}
+            onRetry={spatialRetry}
+            isScoped={hasLocationFilter}
           />
-          <TopPriorityList
-            titleKey="overview.topRestoration.title"
-            variant="restoration"
-            query={restoration}
+          <ConditionAnalytics
+            total={totals.isSuccess ? totals.data.total : null}
+            functional={functionalCount}
+            nonFunctional={nonFunctionalCount}
+            isPending={totals.isPending || statusPending}
           />
         </div>
 
-        {/* 6. Spatial summary */}
-        <OverviewSpatialSummary
-          points={spatialPoints}
-          total={spatialTotal}
-          isPending={spatialPending}
-          isError={spatialIsError}
-          error={spatialError}
-          onRetry={spatialRetry}
-          isScoped={hasLocationFilter}
-        />
+        {/* 3. The two pathways, never combined: count + top 8 + link */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <PriorityCard variant="preventive" query={preventive} />
+          <PriorityCard variant="restoration" query={restoration} />
+        </div>
       </div>
     </SectionPage>
   )

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/source-serif-4";
 @import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
@@ -52,6 +54,20 @@
        for brand-accent details without being pulled into contrast-critical
        surfaces (header/sidebar text contrast is tuned against --mg-blue-700/800/900). */
     --mg-shell-blue: #89cff0;
+
+    /* water teal (newdesign brand + shell) */
+    --mg-water-50: #eaf2f5;
+    --mg-water-100: #d7e8ee;
+    --mg-water-300: #7cc4d8;
+    --mg-water-400: #3fa6c4;
+    --mg-water-500: #1a8fb0;
+    --mg-water-600: #12748f;
+    --mg-water-700: #0b5f77;
+    --mg-water-800: #0a4d62;
+    --mg-water-900: #083b4d;
+    --mg-water-950: #062c3a;
+    --mg-ink: #12303d;
+    --mg-ocean: #0b78b8;
 
     /* hazard ramp (risk bands) */
     --mg-hazard-soft-1: #fdf0d5;
@@ -112,20 +128,20 @@
    Layer 2 — semantic tokens, light theme (default)
    -------------------------------------------------------------------------- */
 :root {
-    --background: var(--mg-n-0);
-    --foreground: var(--mg-n-900);
+    --background: #ffffff;
+    --foreground: var(--mg-ink);
     --card: var(--mg-n-0);
-    --card-foreground: var(--mg-n-900);
+    --card-foreground: var(--mg-ink);
     --popover: var(--mg-n-0);
     --popover-foreground: var(--mg-n-900);
-    --primary: var(--mg-blue-700);
+    --primary: var(--mg-water-700);
     --primary-foreground: var(--mg-n-0);
     --secondary: var(--mg-n-100);
     --secondary-foreground: var(--mg-n-800);
     --muted: var(--mg-n-50);
     --muted-foreground: var(--mg-n-600);
-    --accent: var(--mg-blue-50);
-    --accent-foreground: var(--mg-blue-800);
+    --accent: var(--mg-water-100);
+    --accent-foreground: var(--mg-water-800);
     --destructive: var(--mg-red-700);
     --destructive-foreground: var(--mg-n-0);
     --success: var(--mg-green-600);
@@ -133,22 +149,22 @@
     --info: var(--mg-teal-600);
 
     /* decorative hairlines only; interactive boundaries use --border-strong */
-    --border: var(--mg-n-200);
+    --border: #d3e2e8;
     --border-strong: var(--mg-n-500);
     --input: var(--mg-n-500);
-    --ring: var(--mg-blue-700);
+    --ring: var(--mg-water-600);
 
     /* MajiGuard institutional blue as a named role (Phase 1). Structural
        accent only: wordmark, links, active state, primary action. It is an
        alias of the existing blue scale, never a new colour, and is kept
        separate from the risk (hazard) and impact (teal) scales. */
-    --brand: var(--mg-blue-700);
+    --brand: var(--mg-water-700);
     --brand-foreground: var(--mg-n-0);
     /* Tanzania flag-colour strip (header). The black band lifts to a slate in
        dark mode, where pure black would vanish into the dark header surface. */
     --flag-black: var(--mg-n-900);
     /* calm inset surface for table headers, inset panels, quiet fills */
-    --surface-subtle: var(--mg-n-50);
+    --surface-subtle: #f3f8fa;
 
     /* status scale: solid, soft chip surface, text/icon on that chip */
     --status-functional: var(--mg-green-600);
@@ -190,28 +206,35 @@
     --impact-high-fg: var(--mg-teal-900);
 
     /* categorical chart series — never used for risk or impact encoding */
-    --chart-1: var(--mg-blue-700);
+    --chart-1: var(--mg-water-700);
     --chart-2: var(--mg-teal-600);
     --chart-3: var(--mg-green-600);
     --chart-4: var(--mg-amber-700);
     --chart-5: var(--mg-n-600);
 
     /* sidebar — restrained neutral surface; brand blue appears only on the active item. */
-    --sidebar: var(--mg-n-50);
-    --sidebar-foreground: var(--mg-n-800);
-    --sidebar-primary: var(--mg-blue-700);
+    --sidebar: var(--mg-water-700);
+    --sidebar-foreground: #e3f1f5;
+    --sidebar-primary: var(--mg-water-500);
     --sidebar-primary-foreground: var(--mg-n-0);
-    --sidebar-accent: var(--mg-blue-100);
-    --sidebar-accent-foreground: var(--mg-blue-800);
-    --sidebar-border: var(--mg-n-200);
-    --sidebar-ring: var(--mg-blue-700);
+    --sidebar-accent: var(--mg-water-500);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: rgb(255 255 255 / 0.14);
+    --sidebar-ring: #ffffff;
 
+
+    /* newdesign: banner / hero / closing surface (teal) */
+    --ocean: var(--mg-water-700);
+    --header: var(--mg-water-700);
+    --header-foreground: #ffffff;
+    --banner-from: var(--mg-water-800);
+    --banner-to: var(--mg-water-500);
 
     /* footer (Phase 4A.1) — the most restrained surface: near-neutral, only
        a blue-family border ties it back to the same shell. */
-    --footer: var(--mg-n-50);
-    --footer-foreground: var(--mg-n-600);
-    --footer-border: var(--mg-n-200);
+    --footer: var(--ocean);
+    --footer-foreground: #ffffff;
+    --footer-border: rgb(255 255 255 / 0.25);
 
     /* map chrome (step 9.5) */
     --map-surface: var(--mg-n-0);
@@ -227,17 +250,17 @@
    text/soft pair is re-picked so it stays readable.
    -------------------------------------------------------------------------- */
 .dark {
-    --background: var(--mg-n-950);
+    --background: #07202b;
     --foreground: #e8eef7;
-    --card: #111c2e;
+    --card: #0d2f3d;
     --card-foreground: #e8eef7;
-    --popover: #16243a;
+    --popover: #12394a;
     --popover-foreground: #e8eef7;
-    --primary: var(--mg-blue-300);
-    --primary-foreground: #0a1626;
+    --primary: var(--mg-water-300);
+    --primary-foreground: #06222d;
     --secondary: #1b2a40;
     --secondary-foreground: #dce6f2;
-    --muted: #16243a;
+    --muted: #12394a;
     --muted-foreground: #a9b8cc;
     --accent: #1b2a40;
     --accent-foreground: #cfe0f2;
@@ -247,15 +270,15 @@
     --warning: var(--mg-amber-400);
     --info: #38bdf8;
 
-    --border: #22344c;
+    --border: #1d4a5c;
     --border-strong: #5a6e8a;
     --input: #5a6e8a;
-    --ring: var(--mg-blue-300);
+    --ring: var(--mg-water-300);
 
-    --brand: var(--mg-blue-300);
+    --brand: var(--mg-water-300);
     --brand-foreground: #0a1626;
     --flag-black: var(--mg-n-700);
-    --surface-subtle: #16243a;
+    --surface-subtle: #0b2937;
 
     --status-functional: var(--mg-green-400);
     --status-functional-soft: var(--mg-tint-functional);
@@ -299,19 +322,25 @@
     --chart-4: var(--mg-amber-400);
     --chart-5: #9aa7b4;
 
-    --sidebar: #0f1a2b;
+    --sidebar: #062c3a;
     --sidebar-foreground: #dbe5f1;
-    --sidebar-primary: var(--mg-blue-300);
+    --sidebar-primary: var(--mg-water-400);
     --sidebar-primary-foreground: #0a1626;
-    --sidebar-accent: #1b2a40;
+    --sidebar-accent: #12748f;
     --sidebar-accent-foreground: #dbe5f1;
-    --sidebar-border: #22344c;
-    --sidebar-ring: var(--mg-blue-300);
+    --sidebar-border: rgb(255 255 255 / 0.12);
+    --sidebar-ring: #ffffff;
 
 
-    --footer: var(--mg-n-950);
-    --footer-foreground: #a9b8cc;
-    --footer-border: #22344c;
+    --ocean: #083b4d;
+    --header: #083b4d;
+    --header-foreground: #ffffff;
+    --banner-from: #062c3a;
+    --banner-to: #12748f;
+
+    --footer: var(--ocean);
+    --footer-foreground: #ffffff;
+    --footer-border: rgb(255 255 255 / 0.2);
 
     --map-surface: #111c2e;
     --map-overlay: rgb(17 28 46 / 92%);
@@ -337,8 +366,8 @@
        Shared primitives use these roles; the raw scale above stays available
        for components that need a different radius for functional reasons
        (e.g. pill chips use --radius-4xl). */
-    --radius-control: 0.25rem;
-    --radius-panel: 0.375rem;
+    --radius-control: 0.5rem;
+    --radius-panel: 0.875rem;
 
     --focus-ring-width: 2px;
     --focus-ring-offset: 2px;
@@ -351,8 +380,8 @@
     --target-size-min: 1.5rem;
     --target-size-comfortable: 2.75rem;
     --table-row-height: 2.5rem;
-    --header-height: 4rem;
-    --content-max-width: 90rem;
+    --header-height: 3.5rem;
+    --content-max-width: 120rem;
     --scroll-padding-header: 5rem;
 
     --duration-fast: 120ms;
@@ -495,14 +524,276 @@
 }
 
 /* --------------------------------------------------------------------------
+   Landing page only (class set by PublicLayout on "/"): a blue-and-white
+   palette built in OKLCH - one hue family (250 -> 235), lightness stepped
+   evenly so white text clears 4.5:1 on 600-900 - plus the glass-droplet
+   header band. Everything else in the app keeps the teal palette.
+   -------------------------------------------------------------------------- */
+.mg-landing {
+    --mg-water-50: oklch(0.985 0.008 240);
+    --mg-water-100: oklch(0.955 0.03 240);
+    --mg-water-300: oklch(0.82 0.09 238);
+    --mg-water-400: oklch(0.72 0.13 242);
+    --mg-water-500: oklch(0.62 0.17 247);
+    --mg-water-600: oklch(0.54 0.18 252);
+    --mg-water-700: oklch(0.46 0.16 255);
+    --mg-water-800: oklch(0.38 0.13 257);
+    --mg-water-900: oklch(0.3 0.1 258);
+    --mg-ink: oklch(0.27 0.05 255);
+
+    --background: #ffffff;
+    --foreground: var(--mg-ink);
+    --primary: var(--mg-water-700);
+    --ring: var(--mg-water-600);
+    --brand: var(--mg-water-700);
+    --accent: var(--mg-water-100);
+    --accent-foreground: var(--mg-water-800);
+    --surface-subtle: oklch(0.975 0.014 240);
+    --border: oklch(0.915 0.025 240);
+    --ocean: var(--mg-water-700);
+    --header: var(--mg-water-700);
+    --footer: var(--mg-water-700);
+}
+
+.dark .mg-landing {
+    --background: oklch(0.2 0.05 258);
+    --foreground: oklch(0.96 0.01 240);
+    --primary: var(--mg-water-300);
+    --ring: var(--mg-water-300);
+    --brand: var(--mg-water-300);
+    --accent: oklch(0.3 0.07 257);
+    --accent-foreground: var(--mg-water-100);
+    --surface-subtle: oklch(0.24 0.06 258);
+    --border: oklch(0.34 0.07 257);
+    --ocean: var(--mg-water-800);
+    --header: var(--mg-water-800);
+    --footer: var(--mg-water-800);
+}
+
+.mg-landing .mg-header-band {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 0%, oklch(0.965 0.025 240) 100%);
+}
+
+.mg-landing .mg-header-band > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Little beads of water on the glass: a glossy highlight over a tinted body. */
+.mg-landing .mg-header-band::before,
+.mg-landing .mg-header-band::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+}
+
+.mg-landing .mg-header-band::before {
+    background-image:
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%);
+    background-size: 12px 12px, 12px 12px, 17px 17px, 17px 17px, 20px 20px, 20px 20px, 12px 12px, 12px 12px, 15px 15px, 15px 15px, 8px 8px, 8px 8px, 8px 8px, 8px 8px, 15px 15px, 15px 15px, 20px 20px, 20px 20px, 10px 10px, 10px 10px, 16px 16px, 16px 16px, 16px 16px, 16px 16px, 10px 10px, 10px 10px, 20px 20px, 20px 20px, 13px 13px, 13px 13px, 8px 8px, 8px 8px;
+    background-position: 21% 56%, 21% 56%, 8% 15%, 8% 15%, 70% 18%, 70% 18%, 76% 13%, 76% 13%, 29% 10%, 29% 10%, 57% 59%, 57% 59%, 32% 17%, 32% 17%, 56% 13%, 56% 13%, 74% 21%, 74% 21%, 82% 86%, 82% 86%, 9% 79%, 9% 79%, 52% 12%, 52% 12%, 7% 77%, 7% 77%, 19% 43%, 19% 43%, 20% 75%, 20% 75%, 75% 45%, 75% 45%;
+}
+
+.mg-landing .mg-header-band::after {
+    background-image:
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%),
+        radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 9%, transparent 10%),
+        radial-gradient(circle at 50% 58%, rgb(222 240 255 / .55) 0 52%, rgb(45 110 200 / .38) 76%, transparent 79%);
+    background-size: 20px 20px, 20px 20px, 13px 13px, 13px 13px, 22px 22px, 22px 22px, 13px 13px, 13px 13px, 21px 21px, 21px 21px;
+    background-position: 89% 11%, 89% 11%, 76% 36%, 76% 36%, 26% 23%, 26% 23%, 72% 4%, 72% 4%, 9% 39%, 9% 39%;
+    animation: mg-drip 11s var(--ease-standard) infinite;
+}
+
+@keyframes mg-drip {
+    0% { transform: translateY(-14px); opacity: 0; }
+    15% { opacity: 1; }
+    80% { opacity: 0.9; }
+    100% { transform: translateY(62px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mg-landing .mg-header-band::after {
+        animation: none;
+        opacity: 0.9;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Dashboard only (`/dashboard`, class set by AppShell): a soft blue backdrop
+   with frosted-glass panels. Palette tokens come from `.mg-landing` above.
+   `.mg-glass` is inert anywhere outside `.mg-dashboard`.
+   -------------------------------------------------------------------------- */
+.mg-landing {
+    --banner-from: var(--mg-water-800);
+    --banner-to: var(--mg-water-500);
+}
+
+.mg-dashboard {
+    background:
+        radial-gradient(60rem 36rem at 8% -8%, oklch(0.88 0.08 232 / 0.75), transparent 62%),
+        radial-gradient(52rem 34rem at 100% 0%, oklch(0.8 0.12 250 / 0.55), transparent 60%),
+        radial-gradient(48rem 30rem at 70% 108%, oklch(0.9 0.06 236 / 0.8), transparent 60%),
+        linear-gradient(180deg, oklch(0.975 0.014 240), oklch(0.94 0.035 242));
+    background-attachment: fixed;
+    --sidebar: transparent;
+    --sidebar-foreground: var(--mg-ink);
+    --sidebar-accent: var(--mg-water-600);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: oklch(0.88 0.03 240);
+}
+
+.dark .mg-dashboard {
+    background:
+        radial-gradient(60rem 36rem at 8% -8%, oklch(0.36 0.1 255 / 0.7), transparent 62%),
+        radial-gradient(52rem 34rem at 100% 0%, oklch(0.4 0.12 250 / 0.5), transparent 60%),
+        linear-gradient(180deg, oklch(0.2 0.05 258), oklch(0.17 0.05 260));
+    background-attachment: fixed;
+    --sidebar-foreground: oklch(0.96 0.01 240);
+    --sidebar-border: oklch(0.34 0.07 257);
+}
+
+.mg-dashboard :is(h1, h2, h3) {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+}
+
+.mg-dashboard .mg-glass {
+    position: relative;
+    isolation: isolate;
+    background: color-mix(in oklab, #ffffff 58%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    backdrop-filter: blur(18px) saturate(1.5);
+    border: 1px solid rgb(255 255 255 / 0.75);
+    border-radius: 1.25rem;
+    box-shadow:
+        0 14px 34px -16px oklch(0.4 0.13 255 / 0.32),
+        0 2px 6px -2px oklch(0.4 0.13 255 / 0.12),
+        inset 0 1px 0 rgb(255 255 255 / 0.85);
+    transition:
+        transform var(--duration-slow) var(--ease-entrance),
+        box-shadow var(--duration-slow) var(--ease-entrance),
+        border-color var(--duration-standard) var(--ease-standard);
+    animation: mg-rise 0.7s var(--ease-entrance) both;
+}
+
+.dark .mg-dashboard .mg-glass {
+    background: color-mix(in oklab, oklch(0.3 0.07 257) 55%, transparent);
+    border-color: rgb(255 255 255 / 0.12);
+    box-shadow:
+        0 16px 38px -16px rgb(0 0 0 / 0.6),
+        inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.mg-dashboard .mg-glass:not(.mg-glass-static):hover {
+    transform: translateY(-4px);
+    border-color: oklch(0.8 0.08 245 / 0.9);
+    box-shadow:
+        0 26px 50px -18px oklch(0.4 0.14 255 / 0.4),
+        0 4px 10px -2px oklch(0.4 0.13 255 / 0.14),
+        inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+/* Cursor-following light: --mx / --my are set by AppShell's pointer handler. */
+.mg-dashboard .mg-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+        280px circle at var(--mx, 50%) var(--my, 50%),
+        rgb(255 255 255 / 0.7),
+        transparent 65%
+    );
+    transition: opacity var(--duration-slow) var(--ease-standard);
+}
+
+.mg-dashboard .mg-glass:not(.mg-glass-static):hover::before {
+    opacity: 1;
+}
+
+.mg-dashboard .mg-glass:nth-child(2) { animation-delay: 70ms; }
+.mg-dashboard .mg-glass:nth-child(3) { animation-delay: 140ms; }
+.mg-dashboard .mg-glass:nth-child(4) { animation-delay: 210ms; }
+.mg-dashboard .mg-glass:nth-child(5) { animation-delay: 280ms; }
+.mg-dashboard .mg-glass:nth-child(6) { animation-delay: 350ms; }
+
+@keyframes mg-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mg-dashboard .mg-glass.mg-glass-fill { height: 100%; }
+
+/* Login / sign-up: scale the form block down on short windows so it always
+   fits the screen with no scrolling. */
+.mg-auth-fit { zoom: 1; }
+@media (max-height: 820px) { .mg-auth-fit { zoom: 0.88; } }
+@media (max-height: 720px) { .mg-auth-fit { zoom: 0.78; } }
+@media (max-height: 620px) { .mg-auth-fit { zoom: 0.68; } }
+
+/* Inner sub-panels on the dashboard read as soft glass, not flat grey. */
+.mg-dashboard .bg-surface-subtle {
+    background: color-mix(in oklab, #ffffff 45%, transparent);
+}
+
+/* --------------------------------------------------------------------------
    Tailwind theme bridge — maps tokens onto utilities (bg-card, text-risk-high…)
    -------------------------------------------------------------------------- */
 @theme inline {
     /* The self-referencing radius and shadow entries below are intentional:
        the utilities inline the primitive name, and these unlayered :root and
        .dark definitions win the cascade, so dark-mode overrides keep working. */
+    --font-serif: "Source Serif 4 Variable", Georgia, "Times New Roman", serif;
     --font-heading: var(--font-sans);
-    --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Manrope Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
 
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -585,6 +876,13 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 
+    --color-water-400: var(--mg-water-400);
+    --color-water-700: var(--mg-water-700);
+    --color-water-800: var(--mg-water-800);
+    --color-water-300: var(--mg-water-300);
+    --color-ocean: var(--ocean);
+    --color-header: var(--header);
+    --color-header-foreground: var(--header-foreground);
     --color-footer: var(--footer);
     --color-footer-foreground: var(--footer-foreground);
     --color-footer-border: var(--footer-border);
@@ -617,25 +915,25 @@
        (--text-mg-caption). Spacing follows Tailwind's 4px `--spacing` base
        (0.25rem), so every p-/gap-/space- step is already a 4/8px multiple.
        `display` is the page-title / KPI-figure size (28px). */
-    --text-mg-display: 1.75rem;
-    --text-mg-display--line-height: 2.25rem;
+    --text-mg-display: 2rem;
+    --text-mg-display--line-height: 2.5rem;
     --text-mg-display--letter-spacing: -0.01em;
-    --text-mg-title-lg: 1.75rem;
-    --text-mg-title-lg--line-height: 2.25rem;
+    --text-mg-title-lg: 2rem;
+    --text-mg-title-lg--line-height: 2.5rem;
     --text-mg-title-lg--letter-spacing: -0.01em;
-    --text-mg-title-md: 1.25rem;
+    --text-mg-title-md: 1.375rem;
     --text-mg-title-md--line-height: 1.75rem;
-    --text-mg-title-sm: 0.9375rem;
-    --text-mg-title-sm--line-height: 1.375rem;
-    --text-mg-body: 1rem;
+    --text-mg-title-sm: 1.0625rem;
+    --text-mg-title-sm--line-height: 1.5rem;
+    --text-mg-body: 1.0625rem;
     --text-mg-body--line-height: 1.625rem;
-    --text-mg-body-sm: 0.875rem;
-    --text-mg-body-sm--line-height: 1.375rem;
-    --text-mg-label: 0.8125rem;
-    --text-mg-label--line-height: 1.25rem;
-    --text-mg-caption: 0.75rem;
-    --text-mg-caption--line-height: 1.125rem;
-    --text-mg-figure: 1.5rem;
+    --text-mg-body-sm: 0.9375rem;
+    --text-mg-body-sm--line-height: 1.5rem;
+    --text-mg-label: 0.9375rem;
+    --text-mg-label--line-height: 1.375rem;
+    --text-mg-caption: 0.8125rem;
+    --text-mg-caption--line-height: 1.25rem;
+    --text-mg-figure: 1.75rem;
     --text-mg-figure--line-height: 2rem;
     --text-mg-figure--letter-spacing: -0.01em;
 }
@@ -643,6 +941,38 @@
 /* --------------------------------------------------------------------------
    Utilities
    -------------------------------------------------------------------------- */
+
+/* newdesign: teal page banner with soft wave lines */
+@utility mg-banner {
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    background: linear-gradient(115deg, var(--banner-from) 0%, var(--banner-to) 100%);
+}
+.mg-banner::before,
+.mg-banner::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: 9999px;
+}
+.mg-banner::before {
+    inset-inline: 30% -10%;
+    top: -55%;
+    height: 90%;
+    border: 10px solid rgb(255 255 255 / 0.16);
+    transform: rotate(-4deg);
+}
+.mg-banner::after {
+    inset-inline: 45% -20%;
+    bottom: -75%;
+    height: 90%;
+    background: linear-gradient(90deg, rgb(255 255 255 / 0.05), rgb(150 214 170 / 0.55));
+}
+.mg-banner > * {
+    position: relative;
+    z-index: 1;
+}
 
 /* tabular figures for tables, coordinates, scores and KPIs */
 @utility mg-figure {
@@ -669,6 +999,8 @@
 
     html {
         @apply font-sans;
+        /* newdesign: scale every rem-based size (type, spacing, controls) up 25% */
+        font-size: 88.5%;
         color-scheme: light;
         /* WCAG 2.2 focus not obscured: keep focused items clear of the
            sticky institutional header */

@@ -45,7 +45,7 @@ export function AuthField({
           autoComplete={autoComplete}
           aria-invalid={error === undefined ? undefined : true}
           aria-describedby={error === undefined ? undefined : errorId}
-          className={isPassword ? 'pe-10 [&::-ms-reveal]:hidden' : undefined}
+          className={isPassword ? 'pe-12 [&::-ms-reveal]:hidden' : undefined}
         />
         {isPassword ? (
           <button
@@ -53,18 +53,18 @@ export function AuthField({
             onClick={() => setRevealed((current) => !current)}
             aria-pressed={revealed}
             aria-label={t(revealed ? 'auth.password.hide' : 'auth.password.show')}
-            className="absolute inset-y-0 end-0 flex w-10 items-center justify-center rounded-e-control text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="absolute inset-y-0 end-0 flex w-12 items-center justify-center rounded-e-control text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {revealed ? (
-              <EyeOff aria-hidden="true" className="size-4" />
+              <EyeOff aria-hidden="true" className="size-5" />
             ) : (
-              <Eye aria-hidden="true" className="size-4" />
+              <Eye aria-hidden="true" className="size-5" />
             )}
           </button>
         ) : null}
       </div>
       {error === undefined ? null : (
-        <p id={errorId} className="text-mg-caption text-destructive">
+        <p id={errorId} className="text-base text-destructive">
           {t(error)}
         </p>
       )}

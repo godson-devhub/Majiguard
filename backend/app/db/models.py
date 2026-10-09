@@ -225,3 +225,26 @@ class PriorityResult(Base):
     priority_unavailable_reason: Mapped[Optional[str]] = mapped_column(Text)
     computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     water_point: Mapped[WaterPoint] = relationship(back_populates="priority_results")
+
+
+class User(Base):
+    """An institution staff account. Accounts are active (``approved``) as soon as they are created."""
+
+    __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("email", name="uq_users_email"),
+        CheckConstraint("status IN ('pending','approved','rejected','disabled')", name="ck_users_status"),
+        Index("ix_users_status", "status"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # A known code (ministry_of_water, ruwasa, district_water_authority) or a name the user typed.
+    institution: Mapped[str] = mapped_column(String(200), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, server_default="approved")
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    approved_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))

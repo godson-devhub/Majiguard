@@ -47,10 +47,15 @@ export function useEstateKpis(scope: EstateScope) {
     nbs_district: district,
     nbs_ward: ward,
   })
-  const statusSummary = useObservedStatusSummary(region, district, ward)
+  // Only the two statuses this screen reads: 2 requests instead of 7, and
+  // the KPI row no longer waits on five counts it never shows.
+  const statusSummary = useObservedStatusSummary(region, district, ward, [
+    FUNCTIONAL_STATUS,
+    NON_FUNCTIONAL_STATUS,
+  ])
   const statusPending = statusSummary.some((query) => query.isPending)
   const functionalCount = statusSummary[0]?.data?.total ?? null
-  const nonFunctionalCount = statusSummary[3]?.data?.total ?? null
+  const nonFunctionalCount = statusSummary[1]?.data?.total ?? null
 
   // --- "Functional, high risk": free at national scope via the Priority
   // Engine's own summary (not location-filterable); counted from the scoped
@@ -66,7 +71,9 @@ export function useEstateKpis(scope: EstateScope) {
   })
   const sampleMapPoints = useQuery({
     ...mapPointsQueryOptions({ page: 1, page_size: NATIONAL_SAMPLE_PAGE_SIZE }),
-    enabled: !hasLocationFilter,
+    // The 500-point preview is the heaviest request here and only feeds the
+    // small map: let the KPI counts claim the connections first.
+    enabled: !hasLocationFilter && (totals.isFetched || totals.isError) && nationalSummary.isFetched,
   })
 
   const functionalHighRiskPending = hasLocationFilter ? scopedMapPoints.isPending : nationalSummary.isPending

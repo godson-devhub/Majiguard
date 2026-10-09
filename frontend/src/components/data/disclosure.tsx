@@ -21,7 +21,7 @@ export function Disclosure({ title, defaultOpen = false, className, children }: 
   const contentId = useId()
 
   return (
-    <section className={cn('overflow-hidden rounded-md border border-border bg-card', className)}>
+    <section className={cn('mg-glass mg-glass-static overflow-hidden', className)}>
       <button
         type="button"
         aria-expanded={open}

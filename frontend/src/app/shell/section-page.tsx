@@ -21,6 +21,8 @@ type SectionPageProps = {
   /** A shorter header for screens where the content (the map) must dominate:
    * a smaller title, the description only from `md` up, no source note. */
   compact?: boolean
+  /** No banner: just the page title, left-aligned. */
+  titleOnly?: boolean
 }
 
 /**
@@ -37,38 +39,48 @@ export function SectionPage({
   toolbar,
   sourceNote,
   compact = false,
+  titleOnly = false,
   children,
 }: SectionPageProps) {
   const { t } = useI18n()
 
   return (
-    <div className={compact ? 'space-y-5' : 'space-y-8'}>
-      <header className={cn('relative border-b border-border', compact ? 'pb-4' : 'pb-7')}>
-        {eyebrowKey === undefined ? null : (
-          <p className="text-mg-caption font-medium uppercase tracking-wider text-muted-foreground">
-            {t(eyebrowKey)}
-          </p>
-        )}
-        <h1
-          id="page-title"
-          tabIndex={-1}
-          className={cn(
-            'font-semibold leading-[.98] tracking-[-.045em] text-foreground [text-wrap:balance]',
-            compact ? 'text-mg-title-lg' : 'text-[clamp(2.3rem,5vw,4.6rem)]',
-          )}
-        >
-          {t(titleKey)}
-        </h1>
-        <p
-          className={cn(
-            'max-w-[68ch] text-muted-foreground',
-            compact ? 'mt-1 hidden text-mg-body-sm md:block' : 'mt-2 text-mg-body',
-          )}
-        >
-          {t(descriptionKey)}
-        </p>
-        {sourceNote === undefined || compact ? null : (
-          <p className="mt-2 text-mg-caption text-muted-foreground">{sourceNote}</p>
+    <div className={compact ? 'space-y-4' : 'space-y-5'}>
+      <header>
+        {titleOnly ? (
+          <h1
+            id="page-title"
+            tabIndex={-1}
+            className="flex h-9 items-center font-serif text-mg-title-lg font-semibold text-foreground"
+          >
+            {t(titleKey)}
+          </h1>
+        ) : (
+          <div>
+            {eyebrowKey === undefined || compact ? null : (
+              <p className="text-mg-caption font-semibold uppercase tracking-[.14em] text-primary">
+                {t(eyebrowKey)}
+              </p>
+            )}
+            <h1
+              id="page-title"
+              tabIndex={-1}
+              className="flex min-h-9 items-center font-serif text-mg-title-lg font-semibold text-foreground [text-wrap:balance]"
+            >
+              {t(titleKey)}
+            </h1>
+            <p
+              className={cn(
+                'max-w-[68ch] text-muted-foreground',
+                compact ? 'mt-0.5 hidden text-mg-body-sm md:block' : 'mt-0.5 text-mg-body-sm',
+              )}
+            >
+              {t(descriptionKey)}
+            </p>
+            {sourceNote === undefined || compact ? null : (
+              <p className="mt-1 text-mg-caption text-muted-foreground">{sourceNote}</p>
+            )}
+          </div>
         )}
         {toolbar === undefined ? null : <div className="mt-4">{toolbar}</div>}
       </header>

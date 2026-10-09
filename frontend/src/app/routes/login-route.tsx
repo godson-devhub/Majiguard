@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 
+import { useAuth } from '@/app/providers/auth-provider'
 import { useI18n } from '@/app/providers/locale-provider'
 import { AuthField } from '@/components/auth/auth-field'
 import { AuthLayout } from '@/components/auth/auth-layout'
-import { AuthUnavailableNotice } from '@/components/auth/auth-unavailable-notice'
+import { authErrorKey } from '@/components/auth/auth-errors'
 import {
   focusFirstInvalid,
   validateEmail,
@@ -15,33 +16,54 @@ import type { MessageKey } from '@/i18n/messages'
 
 type Errors = { email?: MessageKey; password?: MessageKey }
 
-/** Login UI only: validates locally and never contacts a backend. */
+/** Signs in against the API. Only an approved account receives access. */
 export function LoginRoute() {
   const { t } = useI18n()
+  const { status, login } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<Errors>({})
-  const [submitted, setSubmitted] = useState(false)
+  const [failure, setFailure] = useState<MessageKey | null>(null)
+  const [busy, setBusy] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
+
+  if (status === 'authenticated') {
+    return <Navigate to={from} replace />
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const next: Errors = {
       email: validateEmail(email),
       password: validatePassword(password),
     }
     setErrors(next)
-    const valid = next.email === undefined && next.password === undefined
-    setSubmitted(valid)
-    if (!valid) {
+    setFailure(null)
+    if (next.email !== undefined || next.password !== undefined) {
       focusFirstInvalid([
         { id: 'login-email', error: next.email },
         { id: 'login-password', error: next.password },
       ])
+      return
+    }
+
+    setBusy(true)
+    try {
+      await login(email.trim(), password)
+      navigate(from, { replace: true })
+    } catch (error) {
+      setFailure(authErrorKey(error))
+    } finally {
+      setBusy(false)
     }
   }
 
   return (
     <AuthLayout
+      fullScreen
       titleKey="auth.login.title"
       descriptionKey="auth.login.description"
       footer={
@@ -56,7 +78,7 @@ export function LoginRoute() {
         </>
       }
     >
-      <form noValidate onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
         <AuthField
           id="login-email"
           labelKey="auth.field.email"
@@ -75,10 +97,14 @@ export function LoginRoute() {
           autoComplete="current-password"
           error={errors.password}
         />
-        <Button type="submit" size="lg" className="w-full">
+        {failure === null ? null : (
+          <p role="alert" className="rounded-xl bg-status-nonfunctional-soft px-4 py-3 text-lg font-medium text-status-nonfunctional-fg">
+            {t(failure)}
+          </p>
+        )}
+        <Button type="submit" size="lg" className="w-full" disabled={busy}>
           {t('auth.login.submit')}
         </Button>
-        {submitted ? <AuthUnavailableNotice /> : null}
       </form>
     </AuthLayout>
   )
